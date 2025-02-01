@@ -52,7 +52,7 @@ while cap.isOpened():
         draw_snowflakes(frame)
 
     # Show frame
-    cv2.imshow("YOLO Pose Estimation with Horizontal Spin-Triggered Snow Effect", frame)
+    cv2.imshow("MERRY X-MAS", frame)
 
 cap.release()
 cv2.destroyAllWindows()
