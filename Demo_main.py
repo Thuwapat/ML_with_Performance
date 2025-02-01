@@ -52,7 +52,11 @@ while cap.isOpened():
         draw_snowflakes(frame)
 
     # Show frame
-    cv2.imshow("MERRY X-MAS", frame)
+    cv2.imshow("Demo", frame)
+
+    # Exit on 'q' key
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
 
 cap.release()
 cv2.destroyAllWindows()
