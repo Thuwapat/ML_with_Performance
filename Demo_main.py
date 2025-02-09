@@ -1,62 +1,90 @@
 import cv2
 import time
-from Pose_estimation import get_shoulder_x
-from Effect import create_snowflakes, update_snowflakes, draw_snowflakes
+from Get_Var import *
+from Effect import *
 from Utileize import calculate_horizontal_angle
 
-# Initialize webcam
-cap = cv2.VideoCapture(0)
+def main():
+    # Initialize webcam
+    cap = cv2.VideoCapture(0)
 
-# Initialize snowflakes
-create_snowflakes()
+    # Initialize snowflakes
+    create_snowflakes()
+    create_particles()
 
-# Track previous shoulder angle
-last_angle = None
-spin_detected = False
-last_spin_time = 0  # To track when spinning stops
+    # Track previous shoulder angle
+    last_angle = None
+    spin_detected = False
+    last_spin_time = 0  # To track when spinning stops
 
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-    # Get shoulder X-coordinates and keypoints
-    left_shoulder_x, right_shoulder_x, keypoints = get_shoulder_x(frame)
+        # Get shoulder and hand X-coordinates and keypoints
+        left_shoulder_x, right_shoulder_x, keypoints = get_post_keypoint(frame)
 
-    # Draw keypoints on frame
-    if keypoints is not None:
-        for x, y in keypoints:
-            cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
+        #hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
 
-    if left_shoulder_x is not None and right_shoulder_x is not None:
-        # Compute horizontal angle
-        current_angle = calculate_horizontal_angle(left_shoulder_x, right_shoulder_x)
+        hand_center, hand_open = detect_hand(frame)
 
-        if last_angle is not None:
-            angle_change = abs(current_angle - last_angle)
+        # Draw Body keypoints on frame
+        if keypoints is not None:
+            for x, y in keypoints:
+                cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
 
-            # Detect fast spinning motion
-            if angle_change > 20:
-                spin_detected = True
-                last_spin_time = time.time()  # Reset spin timer
+         # Draw hand marker (for visualization)
+        if hand_center is not None:
+            color = (0, 255, 0) if hand_open else (0, 0, 255)  # Green for open, Red for fist
+            cv2.circle(frame, hand_center, 20, color, 2)
 
-        last_angle = current_angle  # Update last angle
+        # Draw Hand box on frame
+        #for box in hand_boxes:
+        #    x1, y1, x2, y2 = map(int, box[:4])
+        #    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        #
+        # # Draw **hand keypoints** (Red dots)
+        #for keypoint in hand_keypoints:
+        #    for x, y in keypoint:
+        #        cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+        
 
-    # Stop snow if no spin detected 
-    if time.time() - last_spin_time > 3:
-        spin_detected = False  # Stop snow effect
+        if left_shoulder_x is not None and right_shoulder_x is not None:
+            # Compute horizontal angle
+            current_angle = calculate_horizontal_angle(left_shoulder_x, right_shoulder_x)
 
-    # If spin detected, activate snow effect
-    if spin_detected:
-        update_snowflakes()
-        draw_snowflakes(frame)
+            if last_angle is not None:
+                angle_change = abs(current_angle - last_angle)
 
-    # Show frame
-    cv2.imshow("Demo", frame)
+                # Detect fast spinning motion
+                if angle_change > 20:
+                    spin_detected = True
+                    last_spin_time = time.time()  # Reset spin timer
 
-    # Exit on 'q' key
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+            last_angle = current_angle  # Update last angle
 
-cap.release()
-cv2.destroyAllWindows()
+        # Stop snow if no spin detected 
+        if time.time() - last_spin_time > 3:
+            spin_detected = False  # Stop snow effect
+
+        # If spin detected, activate snow effect
+        if spin_detected:
+            update_snowflakes()
+            draw_snowflakes(frame)
+        else:
+            update_particles(hand_center, hand_open)
+            draw_particles(frame)
+
+        # Show frame
+        cv2.imshow("Demo", frame)
+
+        # Exit on 'q' key
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+    
+if __name__ == "__main__":
+    main()
