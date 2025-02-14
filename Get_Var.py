@@ -6,6 +6,8 @@ model_post = YOLO("yolo11n-pose.pt")
 model_post.to('cuda')
 model_hand = YOLO("hand_detection.pt")
 model_hand.to('cuda')
+model_object = YOLO("yolo11n.pt")
+model_object.to('cuda')
 
 def get_post_keypoint(frame):
     results = model_post.predict(frame)
@@ -51,20 +53,26 @@ def get_post_keypoint(frame):
 def detect_hand(frame):
     results = model_hand.predict(frame)
 
-    hand_center, hand_open = None, False  # Default values if no hand is detected
+    left_hand, right_hand = None, None  
+    handful = False
+    hand_center, hand_open = None, False  
 
     for result in results:
-        if result.boxes is not None and len(result.boxes) > 0:  # Ensure detection exists
+        if result.boxes is not None and len(result.boxes) > 0:  
             boxes = result.boxes.xyxy.cpu().numpy()
             keypoints = result.keypoints.xy.cpu().numpy() if result.keypoints is not None else []
 
-            # Use first detected hand (for now)
-            x1, y1, x2, y2 = boxes[0][:4]
-            hand_center = (int((x1 + x2) / 2), int((y1 + y2) / 2))  # Center of bounding box
+            if len(boxes) >= 1:
+                left_hand = (int((boxes[0][0] + boxes[0][2]) / 2), int((boxes[0][1] + boxes[0][3]) / 2))
 
-            # Check if fingers are spread (i.e., open palm)
+            if len(boxes) >= 2:  
+                right_hand = (int((boxes[1][0] + boxes[1][2]) / 2), int((boxes[1][1] + boxes[1][3]) / 2))
+
+            hand_center = left_hand if right_hand is None else right_hand  
+
             if len(keypoints) > 0:
-                finger_spread = np.mean(keypoints[0][:, 1]) > y1 + (y2 - y1) * 0.5  # Simple spread detection
-                hand_open = finger_spread  # If fingers are high above palm, assume open
+                finger_spread = np.mean(keypoints[0][:, 1]) > boxes[0][1] + (boxes[0][3] - boxes[0][1]) * 0.5
+                hand_open = finger_spread
+                handful = not hand_open
 
-    return hand_center, hand_open  # Return position + open/closed state
+    return left_hand, right_hand, handful, hand_center, hand_open  
