@@ -10,7 +10,7 @@ def main():
     cap = cv2.VideoCapture(0)
 
     # Initialize snowflakes
-    create_snowflakes()
+    #create_snowflakes()
     create_particles()
 
     # Track previous shoulder angle
@@ -19,6 +19,7 @@ def main():
     last_spin_time = 0  # To track when spinning stops
 
     with pyvirtualcam.Camera(width=640, height=480, fps=30) as cam:
+        prev_time = time.time()
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -26,11 +27,16 @@ def main():
 
             frame = cv2.resize(frame, (width, height))
             # Get shoulder and hand X-coordinates and keypoints
-            left_shoulder_x, right_shoulder_x, keypoints = get_post_keypoint(frame)
+            #left_shoulder_x, right_shoulder_x, keypoints = get_post_keypoint(frame)
 
             #hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
 
             left_hand, right_hand, handful, hand_center, hand_open = detect_hand(frame)
+
+            # Smooth frame rate control
+            current_time = time.time()
+            elapsed_time = current_time - prev_time
+            prev_time = current_time  
 
             # Draw Body keypoints on frame
             #if keypoints is not None:
@@ -38,9 +44,9 @@ def main():
             #        cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
 
              # Draw hand marker (for visualization)
-            if hand_center is not None:
-                color = (0, 255, 0) if hand_open else (0, 0, 255)  # Green for open, Red for fist
-                cv2.circle(frame, hand_center, 20, color, 2)
+            #if hand_center is not None:
+            #    color = (0, 255, 0) if hand_open else (0, 0, 255)  # Green for open, Red for fist
+            #    cv2.circle(frame, hand_center, 20, color, 2)
 
             # Draw Hand box on frame
             #for box in hand_boxes:
@@ -53,19 +59,19 @@ def main():
             #        cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
 
 
-            if left_shoulder_x is not None and right_shoulder_x is not None:
+            #if left_shoulder_x is not None and right_shoulder_x is not None:
                 # Compute horizontal angle
-                current_angle = calculate_horizontal_angle(left_shoulder_x, right_shoulder_x)
+            #    current_angle = calculate_horizontal_angle(left_shoulder_x, right_shoulder_x)
 
-                if last_angle is not None:
-                    angle_change = abs(current_angle - last_angle)
+            #    if last_angle is not None:
+            #        angle_change = abs(current_angle - last_angle)
 
                     # Detect fast spinning motion
-                    if angle_change > 20:
-                        spin_detected = True
-                        last_spin_time = time.time()  # Reset spin timer
+            #        if angle_change > 20:
+            #            spin_detected = True
+            #            last_spin_time = time.time()  # Reset spin timer
 
-                last_angle = current_angle  # Update last angle
+            #    last_angle = current_angle  # Update last angle
 
             # Stop snow if no spin detected 
             #if time.time() - last_spin_time > 3:
@@ -76,7 +82,7 @@ def main():
             #    update_snowflakes()
             #    draw_snowflakes(frame)
             #else:
-            update_particles(hand_center, hand_open, handful)
+            update_particles(hand_center, hand_open, handful, elapsed_time)
             draw_particles(frame)
 
             # Show frame

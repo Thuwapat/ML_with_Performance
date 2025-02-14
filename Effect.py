@@ -81,7 +81,7 @@ def heart_shape(index, scale=10):
 
 ## If palm is open, particles burst outward and fade away
 ## If handful is made, particles arrange into a shape
-def update_particles(hand_center, hand_open, handful): 
+def update_particles(hand_center, hand_open, handful, elapsed_time): 
     global particles, last_burst_time
 
     current_time = time.time()
@@ -104,8 +104,8 @@ def update_particles(hand_center, hand_open, handful):
             direction_y /= distance
 
             speed = 6  
-            particle["vx"] += direction_x * speed + random.uniform(-1, 1)
-            particle["vy"] += direction_y * speed + random.uniform(-1, 1)
+            particle["vx"] += direction_x * speed * elapsed_time + random.uniform(-1, 1)
+            particle["vy"] += direction_y * speed * elapsed_time + random.uniform(-1, 1)
 
             particle["opacity"] -= 10  
             if particle["opacity"] <= 0 and not cooldown_active:
@@ -117,8 +117,8 @@ def update_particles(hand_center, hand_open, handful):
             target_x += hand_x  
             target_y += hand_y
 
-            particle["vx"] += (target_x - particle["x"]) * 0.1  
-            particle["vy"] += (target_y - particle["y"]) * 0.1  
+            particle["vx"] += (target_x - particle["x"]) * 0.1 * elapsed_time
+            particle["vy"] += (target_y - particle["y"]) * 0.1 * elapsed_time 
 
         particle["x"] += particle["vx"]
         particle["y"] += particle["vy"]
@@ -132,4 +132,4 @@ def draw_particles(frame):
     for particle in particles:
         opacity = max(0, particle["opacity"])  
         if opacity > 0:  
-            cv2.circle(frame, (int(particle["x"]), int(particle["y"])), particle["size"], (170, 9, 78), -1)
+            cv2.circle(frame, (int(particle["x"]), int(particle["y"])), particle["size"], (208, 145, 255), -1)
