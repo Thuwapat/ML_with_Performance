@@ -189,13 +189,14 @@ def extract_body_pixels(frame, body_box):
     
     for i in range(0, body_pixels.shape[0], 5):  # Step for particle density
         for j in range(0, body_pixels.shape[1], 5):
-            color = tuple(int(c) for c in body_pixels[i, j])  # Extract pixel color
-            glitch_particles.append({
-                "x": x1 + j, "y": y1 + i,
-                "vx": 0, "vy": 0,
-                "opacity": 255,
-                "color": color  # Assign extracted color
-            })
+            if i < body_pixels.shape[0] and j < body_pixels.shape[1]:  
+                color = tuple(int(c) for c in body_pixels[i, j])  # Extract pixel color
+                glitch_particles.append({
+                    "x": x1 + j, "y": y1 + i,
+                    "vx": 0, "vy": 0,
+                    "opacity": 255,
+                    "color": color  # Assign extracted color
+                })
 
 def apply_glitch_effect(frame, body_box):
     """ Applies a digital glitch effect to the body before dispersion. """
@@ -236,7 +237,8 @@ def update_glitch(frame, body_box, hands_together):
         else:
             glitch_active = False  # End glitch
             dispersion_effect()  # Start dispersion
-
+            
+    glitch_particles[:] = [p for p in glitch_particles if p["opacity"] > 0]
     for glitch_par in glitch_particles:
         # Move particles outward
         glitch_par["x"] += glitch_par["vx"]
