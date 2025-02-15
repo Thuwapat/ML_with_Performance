@@ -140,9 +140,6 @@ def update_particles(hand_center, hand_open, handful, elapsed_time):
         particle["y"] = np.clip(particle["y"], 0, height)
 
 def overlay_image(background, overlay, x, y, opacity=1.0):
-    """
-    Overlays an image (overlay) onto a background at position (x, y) with transparency.
-    """
     h, w, c = overlay.shape
     x, y = int(x - w / 2), int(y - h / 2)  
 
@@ -164,9 +161,6 @@ def overlay_image(background, overlay, x, y, opacity=1.0):
     return background
 
 def draw_particles(frame):
-    """
-    Draws floating particles using a .png image.
-    """
     global particle_img
 
     if particle_img is None:
@@ -180,7 +174,6 @@ def draw_particles(frame):
             frame = overlay_image(frame, particle_resized, particle["x"], particle["y"], particle["opacity"] / 255.0)
 
 def extract_body_pixels(frame, body_box):
-    """ Extracts the detected body region and breaks it into small pixel-based particles for glitch effect. """
     global glitch_particles, body_pixels, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
     x1, y1, x2, y2 = body_box  
@@ -205,7 +198,6 @@ def extract_body_pixels(frame, body_box):
                 })
 
 def apply_glitch_effect(frame, body_box, glitch_intensity):
-    """ Applies a gradually increasing digital glitch effect to the body before dispersion. """
     x1, y1, x2, y2 = body_box  
 
     # Gradually increase glitch intensity over time
@@ -222,7 +214,6 @@ def apply_glitch_effect(frame, body_box, glitch_intensity):
     return frame
 
 def dispersion_effect():
-    """ Scatters particles outward after the glitch effect. """
     global glitch_particles
     for particle in glitch_particles:
         angle = random.uniform(0, 2 * np.pi)
@@ -237,7 +228,6 @@ def get_dispersion_status():
     return dispersion_started
 
 def update_glitch(frame, body_box, hands_together):
-    """ Controls the glitch effect & transitions to dispersion smoothly. """
     global glitch_particles, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
     if hands_together and body_box and not glitch_active:
@@ -262,14 +252,14 @@ def update_glitch(frame, body_box, hands_together):
     if effect_reset_time is None or time.time() < effect_reset_time:  
         glitch_particles[:] = [p for p in glitch_particles if p["opacity"] > 0]  
         for particle in glitch_particles:
-            particle["x"] += particle["vx"] + random.uniform(-1, 1)  # ✅ Add slight randomness to movement
+            particle["x"] += particle["vx"] + random.uniform(-1, 1)  # Add slight randomness to movement
             particle["y"] += particle["vy"] + random.uniform(-1, 1)  
 
             # Reduce damping effect to keep particles moving longer
             particle["vx"] *= 0.95  
             particle["vy"] *= 0.95  
 
-            particle["opacity"] -= 1.0  
+            particle["opacity"] -= 1  
 
             # Keep particles within screen
             particle["x"] = np.clip(particle["x"], 0, width)
@@ -278,7 +268,6 @@ def update_glitch(frame, body_box, hands_together):
     return frame
 
 def draw_glitch(frame):
-    """ Draws glitch particles with smooth fading. """
     for particle in glitch_particles:
         if "color" in particle and particle["opacity"] > 0:
             color = particle["color"]

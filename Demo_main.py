@@ -19,7 +19,7 @@ def main():
     last_spin_time = 0  # To track when spinning stops
 
     # Time tracking for fade effect
-    fade_duration = 60  # in seconds
+    fade_duration = 30  # in seconds
     start_fade_time = time.time()
 
     with pyvirtualcam.Camera(width=640, height=480, fps=30) as cam:
