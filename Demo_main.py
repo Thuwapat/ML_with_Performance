@@ -102,6 +102,9 @@ def main():
             frame = update_glitch(frame, body_box, hands_together)
             draw_glitch(frame)
             
+            # Gray Filter
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
 
             # Show frame
             cv2.imshow("Demo", frame)
@@ -111,7 +114,7 @@ def main():
                 break
                 # Apply effects as per your script...
 
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert for virtual cam
+            #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert for virtual cam
             cam.send(frame)
             cam.sleep_until_next_frame()
             
