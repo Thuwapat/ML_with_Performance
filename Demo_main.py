@@ -31,8 +31,9 @@ def main():
 
             #hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
 
-            left_hand, right_hand, handful, hand_center, hand_open = detect_hand(frame)
-
+            left_hand, right_hand, handful, hand_center, hand_open, hands_together = detect_hand(frame)
+            body_box = detect_body(frame)
+            
             # Smooth frame rate control
             current_time = time.time()
             elapsed_time = current_time - prev_time
@@ -84,6 +85,9 @@ def main():
             #else:
             update_particles(hand_center, hand_open, handful, elapsed_time)
             draw_particles(frame)
+            frame = update_glitch(frame, body_box, hands_together)
+            draw_glitch(frame)
+            
 
             # Show frame
             cv2.imshow("Demo", frame)

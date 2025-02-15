@@ -18,6 +18,12 @@ snowflakes = []
 num_particles = 500
 particles = []
 
+glitch_particles = []
+body_pixels = None  # Store body pixels for fragmentation
+glitch_active = False  # Track if glitch effect is active
+glitch_duration = 0.5  # Duration of glitch effect before dispersion
+glitch_start_time = None
+
 particle_img = cv2.imread("./images/rose.png", cv2.IMREAD_UNCHANGED)  
 particle_size = 15  # Adjust size of particle image
 
@@ -130,12 +136,6 @@ def update_particles(hand_center, hand_open, handful, elapsed_time):
         particle["x"] = np.clip(particle["x"], 0, width)
         particle["y"] = np.clip(particle["y"], 0, height)
 
-#def draw_particles(frame):
-#    for particle in particles:
-#        opacity = max(0, particle["opacity"])  
-#        if opacity > 0:  
-#            cv2.circle(frame, (int(particle["x"]), int(particle["y"])), particle["size"], (208, 145, 255), -1)
-
 def overlay_image(background, overlay, x, y, opacity=1.0):
     """
     Overlays an image (overlay) onto a background at position (x, y) with transparency.
@@ -175,3 +175,87 @@ def draw_particles(frame):
     for particle in particles:
         if particle["opacity"] > 0:  
             frame = overlay_image(frame, particle_resized, particle["x"], particle["y"], particle["opacity"] / 255.0)
+
+def extract_body_pixels(frame, body_box):
+    """ Extracts the detected body region and breaks it into small pixel-based particles. """
+    global glitch_particles, body_pixels, glitch_active, glitch_start_time
+
+    x1, y1, x2, y2 = body_box  
+    body_pixels = frame[y1:y2, x1:x2].copy()  # Extract body image
+
+    glitch_particles = []  # Clear previous particles
+    glitch_active = True  # Activate glitch effect
+    glitch_start_time = time.time()  # Start glitch timer
+    
+    for i in range(0, body_pixels.shape[0], 5):  # Step for particle density
+        for j in range(0, body_pixels.shape[1], 5):
+            color = tuple(int(c) for c in body_pixels[i, j])  # Extract pixel color
+            glitch_particles.append({
+                "x": x1 + j, "y": y1 + i,
+                "vx": 0, "vy": 0,
+                "opacity": 255,
+                "color": color  # Assign extracted color
+            })
+
+def apply_glitch_effect(frame, body_box):
+    """ Applies a digital glitch effect to the body before dispersion. """
+    x1, y1, x2, y2 = body_box  
+
+    # Randomly shift horizontal & vertical lines to create a glitch
+    for i in range(y1, y2, 10):
+        shift = random.randint(-5, 5)  # Random horizontal shift
+        frame[i:i+5, x1:x2] = np.roll(frame[i:i+5, x1:x2], shift, axis=1)
+
+    for j in range(x1, x2, 10):
+        shift = random.randint(-5, 5)  # Random vertical shift
+        frame[y1:y2, j:j+5] = np.roll(frame[y1:y2, j:j+5], shift, axis=0)
+
+    return frame
+
+def dispersion_effect():
+    """ Scatters particles outward to create a dispersion effect. """
+    global glitch_particles
+    for glitch_par in glitch_particles:
+        angle = random.uniform(0, 2 * np.pi)
+        speed = random.uniform(2, 6)
+
+        glitch_par["vx"] = np.cos(angle) * speed  
+        glitch_par["vy"] = np.sin(angle) * speed  
+
+def update_glitch(frame, body_box, hands_together):
+    """ Controls the glitch & dispersion effect when hands come together. """
+    global glitch_particles, glitch_active, glitch_start_time
+
+    if hands_together and body_box and not glitch_active:
+        extract_body_pixels(frame, body_box)  # Extract pixels for glitch effect
+
+    if glitch_active:
+        elapsed_time = time.time() - glitch_start_time
+        if elapsed_time < glitch_duration:
+            frame = apply_glitch_effect(frame, body_box)  # Apply glitch effect
+        else:
+            glitch_active = False  # End glitch
+            dispersion_effect()  # Start dispersion
+
+    for glitch_par in glitch_particles:
+        # Move particles outward
+        glitch_par["x"] += glitch_par["vx"]
+        glitch_par["y"] += glitch_par["vy"]
+        glitch_par["opacity"] -= 5  # Smooth fade effect
+
+        # Remove fully faded particles
+        if glitch_par["opacity"] <= 0:
+            glitch_particles.remove(glitch_par)
+
+        # Keep particles within screen bounds
+        glitch_par["x"] = np.clip(glitch_par["x"], 0, width)
+        glitch_par["y"] = np.clip(glitch_par["y"], 0, height)
+
+    return frame
+
+def draw_glitch(frame):
+    """ Draws pixel-based particles with fading effect. """
+    for glitch_par in glitch_particles:
+        if glitch_par["opacity"] > 0:
+            color = glitch_par["color"]
+            cv2.circle(frame, (int(glitch_par["x"]), int(glitch_par["y"])), 2, color, -1)

@@ -56,12 +56,13 @@ def detect_hand(frame):
     left_hand, right_hand = None, None  
     handful = False
     hand_center, hand_open = None, False  
-
+    hands_together = False
+    
     for result in results:
         if result.boxes is not None and len(result.boxes) > 0:  
             boxes = result.boxes.xyxy.cpu().numpy()
             keypoints = result.keypoints.xy.cpu().numpy() if result.keypoints is not None else []
-
+            
             if len(boxes) >= 1:
                 left_hand = (int((boxes[0][0] + boxes[0][2]) / 2), int((boxes[0][1] + boxes[0][3]) / 2))
 
@@ -75,4 +76,27 @@ def detect_hand(frame):
                 hand_open = finger_spread
                 handful = not hand_open
 
-    return left_hand, right_hand, handful, hand_center, hand_open  
+            if len(boxes) > 1:  
+                left_hand = (int((boxes[0][0] + boxes[0][2]) / 2), int((boxes[0][1] + boxes[0][3]) / 2))
+                right_hand = (int((boxes[1][0] + boxes[1][2]) / 2), int((boxes[1][1] + boxes[1][3]) / 2))
+
+                # ✅ Detect if hands are close
+                distance = np.sqrt((left_hand[0] - right_hand[0])**2 + (left_hand[1] - right_hand[1])**2)
+                hands_together = distance < 50 
+
+    return left_hand, right_hand, handful, hand_center, hand_open, hands_together
+
+def detect_body(frame):
+    results = model_object.predict(frame)
+
+    body_box = None  
+
+    for result in results:
+        if result.boxes is not None and len(result.boxes) > 0:  
+            boxes = result.boxes.xyxy.cpu().numpy()
+
+            if len(boxes) > 0:
+                x1, y1, x2, y2 = boxes[0]  
+                body_box = (int(x1), int(y1), int(x2), int(y2))  
+
+    return body_box
