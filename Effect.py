@@ -273,8 +273,6 @@ def update_glitch(frame, body_box, hands_together):
 
     return frame
 
-
-
 def draw_glitch(frame):
     """ Draws glitch particles with smooth fading. """
     for particle in glitch_particles:
