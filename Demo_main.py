@@ -19,7 +19,7 @@ def main():
     last_spin_time = 0  # To track when spinning stops
 
     # Time tracking for fade effect
-    fade_duration = 20  # in seconds
+    fade_duration = 60  # in seconds
     start_fade_time = time.time()
 
     with pyvirtualcam.Camera(width=640, height=480, fps=30) as cam:
@@ -43,12 +43,16 @@ def main():
             elapsed_time = current_time - prev_time
             prev_time = current_time  
 
-            fade_elapsed_time = current_time - start_fade_time
-            fade_factor = max(0, 1 - (fade_elapsed_time / fade_duration))
+            if get_dispersion_status():
+                if start_fade_time is None:  
+                    start_fade_time = current_time  # Start fade effect once
 
-             # Convert frame to black using a blend effect
-            black_background = np.zeros_like(frame)  # Black image
-            frame = cv2.addWeighted(frame, fade_factor, black_background, 1 - fade_factor, 0)
+                fade_elapsed_time = current_time - start_fade_time
+                fade_factor = max(0, 1 - (fade_elapsed_time / fade_duration))
+
+                # Convert frame to black using a blend effect
+                black_background = np.zeros_like(frame)  
+                frame = cv2.addWeighted(frame, fade_factor, black_background, 1 - fade_factor, 0)
             # Draw Body keypoints on frame
             #if keypoints is not None:
             #    for x, y in keypoints:

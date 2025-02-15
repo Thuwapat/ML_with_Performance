@@ -232,6 +232,10 @@ def dispersion_effect():
         particle["vx"] = np.cos(angle) * speed + random.uniform(-2, 2)
         particle["vy"] = np.sin(angle) * speed + random.uniform(-2, 2) 
 
+def get_dispersion_status():
+    global dispersion_started
+    return dispersion_started
+
 def update_glitch(frame, body_box, hands_together):
     """ Controls the glitch effect & transitions to dispersion smoothly. """
     global glitch_particles, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
