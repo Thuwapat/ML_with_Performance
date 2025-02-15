@@ -15,9 +15,11 @@ num_flakes = 100
 snowflakes = []
 
 # Particle storage
-num_particles = 200
+num_particles = 500
 particles = []
 
+particle_img = cv2.imread("./images/rose.png", cv2.IMREAD_UNCHANGED)  
+particle_size = 15  # Adjust size of particle image
 
 # Generate snowflakes
 def create_snowflakes():
@@ -73,7 +75,7 @@ def reset_particles_to_borders():
         particle["vx"], particle["vy"] = 0, 0  
         particle["opacity"] = 0
 
-def heart_shape(index, scale=10):
+def heart_shape(index, scale=2):
     t = index * (2 * np.pi / num_particles)
     x = scale * (16 * np.sin(t)**3)
     y = -scale * (13 * np.cos(t) - 5 * np.cos(2*t) - 2 * np.cos(3*t) - np.cos(4*t))  # Inverted Y for OpenCV
@@ -128,8 +130,48 @@ def update_particles(hand_center, hand_open, handful, elapsed_time):
         particle["x"] = np.clip(particle["x"], 0, width)
         particle["y"] = np.clip(particle["y"], 0, height)
 
+#def draw_particles(frame):
+#    for particle in particles:
+#        opacity = max(0, particle["opacity"])  
+#        if opacity > 0:  
+#            cv2.circle(frame, (int(particle["x"]), int(particle["y"])), particle["size"], (208, 145, 255), -1)
+
+def overlay_image(background, overlay, x, y, opacity=1.0):
+    """
+    Overlays an image (overlay) onto a background at position (x, y) with transparency.
+    """
+    h, w, c = overlay.shape
+    x, y = int(x - w / 2), int(y - h / 2)  
+
+    if x < 0 or y < 0 or x + w > background.shape[1] or y + h > background.shape[0]:
+        return background  
+
+    overlay_rgb = overlay[:, :, :3]  # Extract RGB
+    if c == 4:
+        mask = overlay[:, :, 3] / 255.0 * opacity  # Use alpha channel
+    else:
+        mask = np.ones((h, w)) * opacity  # If no alpha, use full opacity
+
+    roi = background[y:y + h, x:x + w]
+
+    for c in range(3):  
+        roi[:, :, c] = (roi[:, :, c] * (1 - mask) + overlay_rgb[:, :, c] * mask).astype(np.uint8)
+
+    background[y:y + h, x:x + w] = roi  
+    return background
+
 def draw_particles(frame):
+    """
+    Draws floating particles using a .png image.
+    """
+    global particle_img
+
+    if particle_img is None:
+        print("Error: Particle image not found!")
+        return
+
+    particle_resized = cv2.resize(particle_img, (particle_size, particle_size))  # Resize image
+
     for particle in particles:
-        opacity = max(0, particle["opacity"])  
-        if opacity > 0:  
-            cv2.circle(frame, (int(particle["x"]), int(particle["y"])), particle["size"], (208, 145, 255), -1)
+        if particle["opacity"] > 0:  
+            frame = overlay_image(frame, particle_resized, particle["x"], particle["y"], particle["opacity"] / 255.0)
