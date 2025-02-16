@@ -99,8 +99,24 @@ def update_particles(hand_center, hand_open, handful, elapsed_time):
     cooldown_active = (current_time - last_burst_time < cooldown_duration)
 
     if hand_center is None:
-        reset_particles_to_borders()
-        return  
+        for particle in particles:
+            particle["opacity"] -= 5  # Gradually decrease opacity
+            if particle["opacity"] <= 0:  # Once fully faded, reset to borders
+                side = random.choice(["top", "bottom", "left", "right"])
+                if side == "top":
+                    particle["x"], particle["y"] = random.randint(0, width), 0
+                elif side == "bottom":
+                    particle["x"], particle["y"] = random.randint(0, width), height
+                elif side == "left":
+                    particle["x"], particle["y"] = 0, random.randint(0, height)
+                else:
+                    particle["x"], particle["y"] = width, random.randint(0, height)
+                
+                particle["vx"], particle["vy"] = 0, 0  
+                particle["opacity"] = 0  # Start invisible until next activation
+        return 
+        #reset_particles_to_borders()
+        #return  
 
     hand_x, hand_y = hand_center  
 
