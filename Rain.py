@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import numpy as np
 import cv2
 
-# Load YOLO models
+
 model_post = YOLO("yolo11n-pose.pt").to('cuda')
 model_hand = YOLO("hand_detection.pt").to('cuda')
 model_object = YOLO("yolo11n.pt").to('cuda')
@@ -41,18 +41,18 @@ def detect_phone(frame):
 def add_rain_effect(frame):
     rain_layer = np.zeros_like(frame, dtype=np.uint8)
     h, w, _ = frame.shape
-    # Heavy drops: หยดฝนหนาๆ จำนวนไม่มาก ให้สีขาวเข้ม
+    
     num_fine = 500
     for _ in range(num_fine):
         x = np.random.randint(0, w)
         y = np.random.randint(0, h)
         length = np.random.randint(5, 15)
         thickness = 1
-        # เพิ่มเอฟเฟกต์สายลมให้หยดฝนเอียงเล็กน้อย
+      
         wind = np.random.randint(-1, 2)
         cv2.line(rain_layer, (x, y), (x + wind, y + length), (200, 200, 200), thickness)
 
-    # ผสมเอฟเฟกต์ฝนกับภาพต้นฉบับ โดยปรับความโปร่งใสให้เหมาะสม
+
     frame_with_rain = cv2.addWeighted(frame, 0.8, rain_layer, 0.3, 0)
     return frame_with_rain
 
