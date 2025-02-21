@@ -1,7 +1,7 @@
 import cv2
 import time
-from Get_Var import *
-from Effect import *
+from Detection.Get_Var import *
+from Effect.Particeles import *
 from Utileize import calculate_horizontal_angle
 import pyvirtualcam
 
@@ -31,10 +31,6 @@ def main():
                 break
 
             frame = cv2.resize(frame, (width, height))
-            # Get shoulder and hand X-coordinates and keypoints
-            #left_shoulder_x, right_shoulder_x, keypoints = get_post_keypoint(frame)
-
-            #hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
 
             left_hand, right_hand, handful, hand_center, hand_open, hands_together = detect_hand(frame)
             body_box = detect_body(frame)
@@ -74,35 +70,10 @@ def main():
             #    for x, y in keypoint:
             #        cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
 
-
-            #if left_shoulder_x is not None and right_shoulder_x is not None:
-                # Compute horizontal angle
-            #    current_angle = calculate_horizontal_angle(left_shoulder_x, right_shoulder_x)
-
-            #    if last_angle is not None:
-            #        angle_change = abs(current_angle - last_angle)
-
-                    # Detect fast spinning motion
-            #        if angle_change > 20:
-            #            spin_detected = True
-            #            last_spin_time = time.time()  # Reset spin timer
-
-            #    last_angle = current_angle  # Update last angle
-
-            # Stop snow if no spin detected 
-            #if time.time() - last_spin_time > 3:
-            #    spin_detected = False  # Stop snow effect
-
-            # If spin detected, activate snow effect
-            #if spin_detected:
-            #    update_snowflakes()
-            #    draw_snowflakes(frame)
-            #else:
             update_particles(hand_center, hand_open, handful, elapsed_time)
             draw_particles(frame)
             frame = update_glitch(frame, body_box, hands_together)
             draw_glitch(frame)
-            #frame = process_frame(frame)
             
             # Gray Filter
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
