@@ -82,7 +82,7 @@ def detect_hand(frame):
 
                 #  Detect if hands are close
                 distance = np.sqrt((left_hand[0] - right_hand[0])**2 + (left_hand[1] - right_hand[1])**2)
-                hands_together = distance < 40 
+                hands_together = distance < 40
 
     return left_hand, right_hand, handful, hand_center, hand_open, hands_together
 

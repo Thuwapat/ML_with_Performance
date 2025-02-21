@@ -75,6 +75,9 @@ while cap.isOpened():
         break
 
     frame = process_frame(frame)
+    # Gray Filter
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
     cv2.imshow("Rain Effect with Phone Detection", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):

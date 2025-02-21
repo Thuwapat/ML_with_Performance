@@ -6,9 +6,10 @@ from Utileize import calculate_horizontal_angle
 import pyvirtualcam
 
 def main():
+    #ip_camera_url = "https://192.168.1.51:8080/video"
     # Initialize webcam
     cap = cv2.VideoCapture(0)
-
+    #cap = cv2.VideoCapture(ip_camera_url)
     # Initialize snowflakes
     #create_snowflakes()
     create_particles()
@@ -101,6 +102,7 @@ def main():
             draw_particles(frame)
             frame = update_glitch(frame, body_box, hands_together)
             draw_glitch(frame)
+            #frame = process_frame(frame)
             
             # Gray Filter
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
