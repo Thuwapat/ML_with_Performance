@@ -3,13 +3,13 @@ import numpy as np
 import cv2
 
 # Load YOLO model
-model_post = YOLO("./Detection/yolo11n-pose.pt")
+model_post = YOLO("./Detection/yolo11x-pose.pt")
 model_post.to('cuda')
 model_hand = YOLO("./Detection/hand_detection.pt")
 model_hand.to('cuda')
-model_object = YOLO("./Detection/yolo11n.pt")
+model_object = YOLO("./Detection/yolo11x.pt")
 model_object.to('cuda')
-model_seg = YOLO("./Detection/yolo11n-seg.pt")
+model_seg = YOLO("./Detection/yolo11x-seg.pt")
 model_seg.to('cuda')
 
 def get_post_keypoint(frame):
