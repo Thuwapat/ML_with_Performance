@@ -10,9 +10,10 @@ def main():
     # Initialize webcam
     cap = cv2.VideoCapture(0)
     #cap = cv2.VideoCapture(ip_camera_url)
-    # Time tracking for fade effect
 
+    # Time tracking for fade effect
     fade_duration = 30  # in seconds
+    fade_factor = 1  # Ensure fade_factor is initialized
     start_fade_time = time.time()
     initialize_particles()
 
@@ -45,9 +46,11 @@ def main():
                 # Convert frame to black using a blend effect
                 black_background = np.zeros_like(frame)  
                 frame = cv2.addWeighted(frame, fade_factor, black_background, 1 - fade_factor, 0)
+            
+            # If screen is fully black, disable glitch effect
+            apply_glitch_effect = fade_factor > 0
 
             # Draw Body keypoints on frame
-
             if keypoint is not None:
                 for x, y in keypoint:
                     cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
@@ -67,10 +70,12 @@ def main():
                 for x, y in keypoint:
                     cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
             
-            update_gravity_swirl_particles(hand_center, hand_open, handful, elapsed_time)
+            update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
+            update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
             draw_gravity_swirl_particles(frame)
-            frame = update_glitch(frame, body_box, hands_together)
-            draw_glitch(frame)
+            if apply_glitch_effect:
+                frame = update_glitch(frame, body_box, hands_together)
+                draw_glitch(frame)
 
             # Gray Filter
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
