@@ -5,7 +5,7 @@ import time
 from ultralytics import YOLO
 
 
-model_phone = YOLO("yolo11n.pt").to('cuda')
+model_phone = YOLO("./detection/yolo11n.pt").to('cuda')
 
 
 black_hole_active = False

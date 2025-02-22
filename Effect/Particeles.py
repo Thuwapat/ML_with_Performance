@@ -203,7 +203,7 @@ def dispersion_effect(body_box):
         distance = max(np.sqrt(dx**2 + dy**2), 1)
 
         # ปรับให้อนุภาคกระจายออกช้าลง
-        speed = 1 + (distance / 100)  # ลดความเร็วของอนุภาค
+        speed = 1 + (distance / 50)  # ลดความเร็วของอนุภาค
         particle["vx"] = (dx / distance) * speed
         particle["vy"] = (dy / distance) * speed
 

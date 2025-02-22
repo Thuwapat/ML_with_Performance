@@ -5,7 +5,7 @@ import time
 from ultralytics import YOLO
 
 # โหลดโมเดลตรวจจับโทรศัพท์
-model_phone = YOLO("./Detection/yolo11n-pose.pt").to('cuda')
+model_phone = YOLO("./Detection/yolo11n.pt").to('cuda')
 
 black_hole_active = False
 black_hole_start_time = 0

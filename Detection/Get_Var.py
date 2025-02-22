@@ -85,7 +85,7 @@ def detect_hand(frame):
 
             if left_hand is not None and right_hand is not None:
                 distance = np.sqrt((left_hand[0] - right_hand[0])**2 + (left_hand[1] - right_hand[1])**2)
-                hands_together = distance < width * 0.05  # ใช้ระยะห่างเป็นเปอร์เซ็นต์ของภาพ
+                hands_together = distance < width * 1  # ใช้ระยะห่างเป็นเปอร์เซ็นต์ของภาพ
             else:
                 hands_together = False  # ถ้ามีมือเดียวให้ถือว่าไม่ได้อยู่ใกล้กัน
 
