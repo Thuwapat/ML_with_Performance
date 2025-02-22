@@ -6,11 +6,8 @@ from Utileize import calculate_horizontal_angle
 import pyvirtualcam
 
 def main():
-    #ip_camera_url = "https://192.168.1.51:8080/video"
     # Initialize webcam
     cap = cv2.VideoCapture(0)
-    #cap = cv2.VideoCapture(ip_camera_url)
-
     # Time tracking for fade effect
     fade_duration = 30  # in seconds
     fade_factor = 1  # Ensure fade_factor is initialized
@@ -73,7 +70,7 @@ def main():
             update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
             update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
             draw_gravity_swirl_particles(frame)
-            
+
             if apply_glitch_effect:
                 frame = update_glitch(frame, body_box, hands_together)
                 draw_glitch(frame)
