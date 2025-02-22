@@ -69,7 +69,7 @@ def update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open
     hand_x, hand_y = hand_center
     min_force = 10  # เพิ่มแรงดึงดูดของอนุภาค
 
-    if handful:
+    if hand_open:
         if left_hand is not None:
             hand_positions.append(left_hand)
         if right_hand is not None:
@@ -85,7 +85,7 @@ def update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open
         dx /= distance
         dy /= distance
         
-        if hand_open:
+        if handful:
             force = max(min_force, 5 / distance)  # ลดแรงผลักออกเพื่อให้หมุนช้าลง
             dx, dy = -dy * 0.5, dx * 0.5  # ลดความเร็วของการหมุนออก
             particle["vx"] += dx * force * elapsed_time
