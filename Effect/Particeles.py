@@ -13,7 +13,7 @@ cooldown_duration = 10  # Cooldown in seconds
 # Particle storage
 num_particles = 5000
 particles = []
-
+particle_trails = {}  # เก็บประวัติตำแหน่งของอนุภาคเพื่อสร้างหาง
 
 # Glitch storage
 glitch_particles = []
@@ -27,30 +27,35 @@ effect_reset_time = None
 
 # Initialize particles in random positions
 def initialize_particles():
-    global particles
+    global particles, particle_trails
     particles = []
+    particle_trails = {}
 
 def create_particles_at_hand(hand_center):
-    global particles
+    global particles, particle_trails
     if hand_center is None:
         return
     
     hand_x, hand_y = hand_center
     for _ in range(30):  # เพิ่มจำนวนอนุภาคที่เกิดขึ้นเมื่อกำมือ
-        particles.append({
+        new_particle = {
             "x": hand_x + random.randint(-15, 15),  # ขยายพื้นที่การกระจายตัว
             "y": hand_y + random.randint(-15, 15),
             "vx": random.uniform(-5, 5),  # เพิ่มความเร็วของอนุภาค
             "vy": random.uniform(-5, 5),
             "opacity": 255,
-        })
+            "size": random.randint(1, 3),  # ลดขนาดของอนุภาคให้เล็กลงแบบสุ่ม
+        }
+        particles.append(new_particle)
+        particle_trails[id(new_particle)] = []  # เริ่มเก็บข้อมูลเส้นทางของอนุภาค
 
 def update_gravity_swirl_particles(hand_center, hand_open, handful, elapsed_time):
-    global particles
+    global particles, particle_trails
     if hand_center is None:
         for particle in particles:
             particle["opacity"] -= 5  # ลดความโปร่งใสของอนุภาคเมื่อไม่มีมือ
             if particle["opacity"] <= 0:
+                particle_trails.pop(id(particle), None)  # ลบเส้นทางของอนุภาคที่หายไป
                 particles.remove(particle)  # ลบอนุภาคที่จางจนมองไม่เห็นออกจากลิสต์
         return
 
@@ -79,11 +84,25 @@ def update_gravity_swirl_particles(hand_center, hand_open, handful, elapsed_time
         
         particle["vx"] *= 0.97  # ลด damping เพื่อให้อนุภาคยังคงเคลื่อนที่เร็วขึ้น
         particle["vy"] *= 0.97
+        
+        # บันทึกเส้นทางของอนุภาคเพื่อสร้างหาง
+        trail = particle_trails.get(id(particle), [])
+        trail.append((particle["x"], particle["y"]))
+        if len(trail) > 10:  # จำกัดความยาวของหางอนุภาค
+            trail.pop(0)
+        particle_trails[id(particle)] = trail
 
 def draw_gravity_swirl_particles(frame):
     for particle in particles:
-        size = particle.get("size", 3)  # ถ้าไม่มีค่า "size" ให้กำหนดค่าเริ่มต้นเป็น 5
-        cv2.circle(frame, (int(particle["x"]), int(particle["y"])), size, (255, 255, 255), -1)
+        if particle["opacity"] > 0:
+            color = (255, 255, 255, int(particle["opacity"]))  # ทำให้อนุภาคจางหายไป
+            cv2.circle(frame, (int(particle["x"]), int(particle["y"])), particle["size"], color, -1)
+        
+        # วาดเส้นทางของอนุภาค (หาง)
+        trail = particle_trails.get(id(particle), [])
+        for i in range(1, len(trail)):
+            alpha = int(255 * (i / len(trail)))  # ทำให้หางค่อยๆ จางลง
+            cv2.line(frame, (int(trail[i-1][0]), int(trail[i-1][1])), (int(trail[i][0]), int(trail[i][1])), (255, 255, 255, alpha), 1)
 
 
 
