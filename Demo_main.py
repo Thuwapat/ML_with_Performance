@@ -28,13 +28,15 @@ def main():
         # Smooth frame rate control
         current_time = time.time()
         elapsed_time = current_time - prev_time
-        prev_time = current_time  
+        prev_time = current_time 
+
         if get_dispersion_status():
             frame = np.zeros_like(frame)  # เปลี่ยนจอเป็นสีดำ
             dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
             draw_glitch(frame)  # วาดอนุภาค Dispersion ลงบนเฟรมสีดำ
             update_projector()
             apply_glitch_effect = False  # ปิด Glitch Effect อย่างสมบูรณ์
+            
         # Draw Body keypoints on frame
         if keypoint is not None:
             for x, y in keypoint:
