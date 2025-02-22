@@ -10,14 +10,6 @@ def main():
     # Initialize webcam
     cap = cv2.VideoCapture(0)
     #cap = cv2.VideoCapture(ip_camera_url)
-    # Initialize snowflakes
-    #create_snowflakes()
-    create_particles_rose()
-
-    # Track previous shoulder angle
-    last_angle = None
-    spin_detected = False
-    last_spin_time = 0  # To track when spinning stops
 
     # Time tracking for fade effect
     fade_duration = 30  # in seconds
@@ -69,12 +61,14 @@ def main():
             #for keypoint in hand_keypoints:
             #    for x, y in keypoint:
             #        cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+            if handful:
+                create_particles_rose()
 
             update_particles_rose(hand_center, hand_open, handful, elapsed_time)
             draw_particles_rose(frame)
             frame = update_glitch(frame, body_box, hands_together)
             draw_glitch(frame)
-            
+
             # Gray Filter
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
