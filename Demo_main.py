@@ -72,8 +72,8 @@ def main():
             
             update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
             update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
-
             draw_gravity_swirl_particles(frame)
+            
             if apply_glitch_effect:
                 frame = update_glitch(frame, body_box, hands_together)
                 draw_glitch(frame)
