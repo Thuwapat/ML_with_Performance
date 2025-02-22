@@ -8,10 +8,7 @@ import pyvirtualcam
 def main():
     # Initialize webcam
     cap = cv2.VideoCapture(0)
-    # Time tracking for fade effect
-    fade_duration = 30  # in seconds
-    fade_factor = 1  # Ensure fade_factor is initialized
-    start_fade_time = time.time()
+    apply_glitch_effect = True
     initialize_particles()
 
     with pyvirtualcam.Camera(width=640, height=480, fps=30) as cam:
@@ -34,18 +31,10 @@ def main():
             prev_time = current_time  
 
             if get_dispersion_status():
-                if start_fade_time is None:  
-                    start_fade_time = current_time  # Start fade effect once
-
-                fade_elapsed_time = current_time - start_fade_time
-                fade_factor = max(0, 1 - (fade_elapsed_time / fade_duration))
-
-                # Convert frame to black using a blend effect
-                black_background = np.zeros_like(frame)  
-                frame = cv2.addWeighted(frame, fade_factor, black_background, 1 - fade_factor, 0)
-            
-            # If screen is fully black, disable glitch effect
-            apply_glitch_effect = fade_factor > 0
+                frame = np.zeros_like(frame)  # เปลี่ยนจอเป็นสีดำ
+                dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
+                draw_glitch(frame)  # วาดอนุภาค Dispersion ลงบนเฟรมสีดำ
+                apply_glitch_effect = False  # ปิด Glitch Effect อย่างสมบูรณ์
 
             # Draw Body keypoints on frame
             if keypoint is not None:
@@ -71,7 +60,7 @@ def main():
             update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
             draw_gravity_swirl_particles(frame)
 
-            if apply_glitch_effect:
+            if apply_glitch_effect and not get_dispersion_status():
                 frame = update_glitch(frame, body_box, hands_together)
                 draw_glitch(frame)
 

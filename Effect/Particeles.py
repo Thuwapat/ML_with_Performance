@@ -184,15 +184,33 @@ def apply_glitch_effect(frame, body_box, glitch_intensity):
 
     return frame
 
-def dispersion_effect():
+def dispersion_effect(body_box):
     global glitch_particles
-    for particle in glitch_particles:
-        angle = random.uniform(0, 2 * np.pi)
-        speed = random.uniform(2, 10)  # Increased speed range for more dynamic movement
+    if body_box is None:
+        return
 
-        # Give more randomness to movement
-        particle["vx"] = np.cos(angle) * speed + random.uniform(-2, 2)
-        particle["vy"] = np.sin(angle) * speed + random.uniform(-2, 2) 
+    # หา Center ของร่างกาย
+    x1, y1, x2, y2 = body_box
+    body_center_x = (x1 + x2) // 2
+    body_center_y = (y1 + y2) // 2
+
+    for particle in glitch_particles:
+        # คำนวณทิศทางให้อนุภาคเคลื่อนออกจากร่างกาย
+        dx = particle["x"] - body_center_x
+        dy = particle["y"] - body_center_y
+        distance = max(np.sqrt(dx**2 + dy**2), 1)
+
+        # ปรับให้อนุภาคกระจายออกช้าลง
+        speed = 1 + (distance / 100)  # ลดความเร็วของอนุภาค
+        particle["vx"] = (dx / distance) * speed
+        particle["vy"] = (dy / distance) * speed
+
+        # อัปเดตตำแหน่งอนุภาค
+        particle["x"] += particle["vx"]
+        particle["y"] += particle["vy"]
+
+    # ลบอนุภาคที่พ้นขอบจอไปไกล
+    glitch_particles[:] = [p for p in glitch_particles if -100 <= p["x"] <= width + 100 and -100 <= p["y"] <= height + 100]
 
 def get_dispersion_status():
     global dispersion_started
@@ -217,7 +235,7 @@ def update_glitch(frame, body_box, hands_together):
             dispersion_started = True  
 
     if dispersion_started:
-        dispersion_effect()
+        dispersion_effect(body_box)
 
     #  Allow particles to move freely by reducing constraints
     if effect_reset_time is None or time.time() < effect_reset_time:  
