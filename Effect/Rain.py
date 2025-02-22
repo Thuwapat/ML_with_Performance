@@ -3,10 +3,10 @@ import numpy as np
 import cv2
 
 
-model_post = YOLO("yolo11n-pose.pt").to('cuda')
-model_hand = YOLO("hand_detection.pt").to('cuda')
-model_object = YOLO("yolo11n.pt").to('cuda')
-model_phone = YOLO("yolo11n.pt").to('cuda')  
+model_post = YOLO("./Detection/yolo11n-pose.pt").to('cuda')
+model_hand = YOLO("./Detection/hand_detection.pt").to('cuda')
+model_object = YOLO("./Detection/yolo11n.pt").to('cuda')
+model_phone = YOLO("./Detection/yolo11n.pt").to('cuda')  
 
 def detect_phone(frame):
    
