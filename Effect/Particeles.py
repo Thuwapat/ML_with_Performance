@@ -2,7 +2,7 @@ import random
 import cv2
 import numpy as np  
 import time
-
+from Detection.Get_Var import get_body_mask
 projector_width = 1920  
 projector_height = 1080 
 
@@ -146,25 +146,32 @@ def update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
         particle["vy"] *= 0.95
 
 ####### Glitch Effects ########
-def extract_body_pixels(frame, body_box):
+def extract_body_pixels(frame):
     global glitch_particles, body_pixels, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
-    x1, y1, x2, y2 = body_box  
-    body_pixels = frame[y1:y2, x1:x2].copy()
+    body_mask = get_body_mask(frame)  # ดึง mask ของร่างกาย
+
+    if body_mask is None:
+        return
+
+    if body_mask.shape[:2] != frame.shape[:2]:  # ป้องกันปัญหาขนาดไม่ตรงกัน
+        body_mask = cv2.resize(body_mask, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST)
+
+    body_pixels = cv2.bitwise_and(frame, frame, mask=body_mask)# ใช้ mask แยกร่างกายออกมา
 
     glitch_particles = []
     glitch_active = True
     glitch_start_time = time.time()
     dispersion_started = False
-    effect_reset_time = time.time() + cooldown_time  # Ensure effect does not reset immediately
+    effect_reset_time = time.time() + cooldown_time  
 
-    # Create small pixel fragments for glitch effect
+    # สร้างอนุภาคจาก pixel ที่มี mask เท่านั้น
     for i in range(0, body_pixels.shape[0], 5):
         for j in range(0, body_pixels.shape[1], 5):
-            if i < body_pixels.shape[0] and j < body_pixels.shape[1]:  
-                color = tuple(int(c) for c in body_pixels[i, j])
+            if body_mask[i, j] > 0:  # ตรวจว่าเป็นส่วนของร่างกาย
+                color = (255, 255, 255)  # อนุภาคเป็นสีขาว
                 glitch_particles.append({
-                    "x": x1 + j, "y": y1 + i,
+                    "x": j, "y": i,
                     "vx": 0, "vy": 0,
                     "opacity": 255,
                     "color": color
@@ -222,7 +229,7 @@ def update_glitch(frame, body_box, hands_together):
     global glitch_particles, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
     if hands_together and body_box and not glitch_active:
-        extract_body_pixels(frame, body_box)
+        extract_body_pixels(frame)
         glitch_start_time = time.time()  
         effect_reset_time = glitch_start_time + cooldown_time  
 
