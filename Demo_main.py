@@ -12,7 +12,7 @@ def main():
     #cap = cv2.VideoCapture(ip_camera_url)
     # Initialize snowflakes
     #create_snowflakes()
-    create_particles()
+    create_particles_rose()
 
     # Track previous shoulder angle
     last_angle = None
@@ -70,8 +70,8 @@ def main():
             #    for x, y in keypoint:
             #        cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
 
-            update_particles(hand_center, hand_open, handful, elapsed_time)
-            draw_particles(frame)
+            update_particles_rose(hand_center, hand_open, handful, elapsed_time)
+            draw_particles_rose(frame)
             frame = update_glitch(frame, body_box, hands_together)
             draw_glitch(frame)
             

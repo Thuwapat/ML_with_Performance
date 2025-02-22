@@ -10,14 +10,11 @@ width, height = 640, 480
 last_burst_time = 0  # Track the last burst event
 cooldown_duration = 10  # Cooldown in seconds
 
-# Snowflake storage
-num_flakes = 100
-snowflakes = []
-
 # Particle storage
 num_particles = 500
 particles = []
 
+# Glitch storage
 glitch_particles = []
 body_pixels = None  # Store body pixels for fragmentation
 glitch_active = False  # Track if glitch effect is active
@@ -30,28 +27,8 @@ effect_reset_time = None
 particle_img = cv2.imread("./images/rose.png", cv2.IMREAD_UNCHANGED)  
 particle_size = 15  # Adjust size of particle image
 
-# Generate snowflakes
-def create_snowflakes():
-    global snowflakes
-    snowflakes = [{"x": random.randint(0, width), "y": random.randint(0, height), "size": random.randint(2, 6)} for _ in range(num_flakes)]
-
-# Make snow move downward and reset when reaching bottom
-def update_snowflakes():
-    global snowflakes
-    for flake in snowflakes:
-        flake["y"] += random.randint(1, 4)  # Snowfall speed
-        flake["x"] += random.choice([-1, 0, 1])  # Slight sideways drift
-        if flake["y"] > height:
-            flake["y"] = 0  # Reset to top
-            flake["x"] = random.randint(0, width)
-
-# Draw snowflakes
-def draw_snowflakes(frame):
-    for flake in snowflakes:
-        cv2.circle(frame, (flake["x"], flake["y"]), flake["size"], (255, 255, 255), -1)
-
 ####### Particle Effects ########
-def create_particles():
+def create_particles_rose():
     global particles
     for _ in range(num_particles):
         side = random.choice(["top", "bottom", "left", "right"])  # Random border spawn
@@ -67,7 +44,7 @@ def create_particles():
 
         particles.append({"x": x, "y": y, "vx": 0, "vy": 0, "size": random.randint(2, 5), "opacity": 0})  
         
-def reset_particles_to_borders():
+def reset_rose_to_borders():
     global particles
     for particle in particles:
         side = random.choice(["top", "bottom", "left", "right"])
@@ -92,7 +69,7 @@ def heart_shape(index, scale=2):
 
 ## If palm is open, particles burst outward and fade away
 ## If handful is made, particles arrange into a shape
-def update_particles(hand_center, hand_open, handful, elapsed_time): 
+def update_particles_rose(hand_center, hand_open, handful, elapsed_time): 
     global particles, last_burst_time
 
     current_time = time.time()
@@ -137,7 +114,7 @@ def update_particles(hand_center, hand_open, handful, elapsed_time):
             particle["opacity"] -= 10  
             if particle["opacity"] <= 0 and not cooldown_active:
                 last_burst_time = current_time  
-                reset_particles_to_borders()
+                reset_rose_to_borders()
 
         if handful:
             target_x, target_y = heart_shape(i, scale=10)
@@ -176,7 +153,7 @@ def overlay_image(background, overlay, x, y, opacity=1.0):
     background[y:y + h, x:x + w] = roi  
     return background
 
-def draw_particles(frame):
+def draw_particles_rose(frame):
     global particle_img
 
     if particle_img is None:
@@ -189,6 +166,9 @@ def draw_particles(frame):
         if particle["opacity"] > 0:  
             frame = overlay_image(frame, particle_resized, particle["x"], particle["y"], particle["opacity"] / 255.0)
 
+
+
+####### Glitch Effects ########
 def extract_body_pixels(frame, body_box):
     global glitch_particles, body_pixels, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
