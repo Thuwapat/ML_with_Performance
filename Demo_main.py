@@ -31,7 +31,6 @@ def main():
         prev_time = current_time 
 
         if get_dispersion_status():
-            frame = np.zeros_like(frame)  # เปลี่ยนจอเป็นสีดำ
             dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
             draw_glitch(frame)  # วาดอนุภาค Dispersion ลงบนเฟรมสีดำ
             update_projector()
