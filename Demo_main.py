@@ -2,8 +2,7 @@ import cv2
 import time
 from Detection.Get_Var import *
 from Effect.Particeles import *
-from Utileize import calculate_horizontal_angle
-import pyvirtualcam
+from Projector_Connect import *
 
 
 def main():
@@ -34,7 +33,7 @@ def main():
             frame = np.zeros_like(frame)  # เปลี่ยนจอเป็นสีดำ
             dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
             draw_glitch(frame)  # วาดอนุภาค Dispersion ลงบนเฟรมสีดำ
-            update_projector(frame)
+            update_projector()
             apply_glitch_effect = False  # ปิด Glitch Effect อย่างสมบูรณ์
         # Draw Body keypoints on frame
         if keypoint is not None:
@@ -61,7 +60,7 @@ def main():
             frame = update_glitch(frame, body_box, hands_together)
             draw_glitch(frame)
             
-        update_projector(frame)
+        update_projector()
         # Gray Filter
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
