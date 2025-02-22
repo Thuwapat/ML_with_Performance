@@ -10,10 +10,11 @@ def main():
     # Initialize webcam
     cap = cv2.VideoCapture(0)
     #cap = cv2.VideoCapture(ip_camera_url)
-
     # Time tracking for fade effect
+
     fade_duration = 30  # in seconds
     start_fade_time = time.time()
+    initialize_particles()
 
     with pyvirtualcam.Camera(width=640, height=480, fps=30) as cam:
         prev_time = time.time()
@@ -24,6 +25,8 @@ def main():
 
             frame = cv2.resize(frame, (width, height))
 
+            left_shoulder_x, right_shoulder_x, keypoint = get_post_keypoint(frame)
+            hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
             left_hand, right_hand, handful, hand_center, hand_open, hands_together = detect_hand(frame)
             body_box = detect_body(frame)
             
@@ -42,30 +45,30 @@ def main():
                 # Convert frame to black using a blend effect
                 black_background = np.zeros_like(frame)  
                 frame = cv2.addWeighted(frame, fade_factor, black_background, 1 - fade_factor, 0)
+
             # Draw Body keypoints on frame
-            #if keypoints is not None:
-            #    for x, y in keypoints:
-            #        cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
+
+            if keypoint is not None:
+                for x, y in keypoint:
+                    cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
 
              # Draw hand marker (for visualization)
-            #if hand_center is not None:
-            #    color = (0, 255, 0) if hand_open else (0, 0, 255)  # Green for open, Red for fist
-            #    cv2.circle(frame, hand_center, 20, color, 2)
+            if hand_center is not None:
+                color = (0, 255, 0) if hand_open else (0, 0, 255)  # Green for open, Red for fist
+                cv2.circle(frame, hand_center, 20, color, 2)
 
             # Draw Hand box on frame
-            #for box in hand_boxes:
-            #    x1, y1, x2, y2 = map(int, box[:4])
-            #    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            for box in hand_boxes:
+                x1, y1, x2, y2 = map(int, box[:4])
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             #
-            # # Draw **hand keypoints** (Red dots)
-            #for keypoint in hand_keypoints:
-            #    for x, y in keypoint:
-            #        cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
-            if handful:
-                create_particles_rose()
-
-            update_particles_rose(hand_center, hand_open, handful, elapsed_time)
-            draw_particles_rose(frame)
+            #Draw **hand keypoints** (Red dots)
+            for keypoint in hand_keypoints:
+                for x, y in keypoint:
+                    cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+            
+            update_gravity_swirl_particles(hand_center, hand_open, handful, elapsed_time)
+            draw_gravity_swirl_particles(frame)
             frame = update_glitch(frame, body_box, hands_together)
             draw_glitch(frame)
 
