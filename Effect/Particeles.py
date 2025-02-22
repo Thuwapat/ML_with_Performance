@@ -188,7 +188,7 @@ def dispersion_effect():
     global glitch_particles
     for particle in glitch_particles:
         angle = random.uniform(0, 2 * np.pi)
-        speed = random.uniform(2, 6)  # Increased speed range for more dynamic movement
+        speed = random.uniform(2, 10)  # Increased speed range for more dynamic movement
 
         # Give more randomness to movement
         particle["vx"] = np.cos(angle) * speed + random.uniform(-2, 2)
