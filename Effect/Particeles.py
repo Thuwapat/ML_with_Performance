@@ -16,6 +16,7 @@ cv2.setWindowProperty("Projector", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREE
 num_particles = 5000
 particles = []
 particle_trails = {}  # เก็บประวัติตำแหน่งของอนุภาคเพื่อสร้างหาง
+previous_particle_frame = None  # ✅ ใช้ Buffer เก็บอนุภาค
 
 # Glitch storage
 glitch_particles = []
@@ -101,10 +102,16 @@ def update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open
         particle_trails[id(particle)] = trail
 
 def draw_gravity_swirl_particles(frame):
+    global previous_particle_frame
+
+    #if previous_particle_frame is not None:
+    #    frame[:] = previous_particle_frame  # ✅ ใช้ค่าเดิมถ้าไม่มีการเปลี่ยนแปลง
+    #    return
+    
     for particle in particles:
         if particle["opacity"] > 0:
             px, py = scale_particle_position(particle["x"], particle["y"])
-            color = (255, 255, 255, int(particle["opacity"]))  # ทำให้อนุภาคจางหายไป
+            color = (0, 0, 0, int(particle["opacity"]))  # ทำให้อนุภาคจางหายไป
             cv2.circle(frame, (px, py), particle["size"], color, -1)
         
         # วาดเส้นทางของอนุภาค (หาง)
@@ -113,7 +120,7 @@ def draw_gravity_swirl_particles(frame):
             prev_px, prev_py = scale_particle_position(trail[i-1][0], trail[i-1][1])
             curr_px, curr_py = scale_particle_position(trail[i][0], trail[i][1])
             alpha = int(255 * (i / len(trail)))  # ทำให้หางค่อยๆ จางลง
-            cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), (255, 255, 255, alpha), 1)
+            cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), (0, 0, 0, alpha), 1)
 
 def update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time):
     global particles, particle_trails
@@ -172,7 +179,7 @@ def extract_body_pixels(frame):
     for i in range(0, body_pixels.shape[0], 5):
         for j in range(0, body_pixels.shape[1], 5):
             if body_mask[i, j] > 0:  # ตรวจว่าเป็นส่วนของร่างกาย
-                color = (255, 255, 255)  # อนุภาคเป็นสีขาว
+                color = (0, 0, 0)  # อนุภาคเป็นสีขาว
                 glitch_particles.append({
                     "x": j, "y": i,
                     "vx": 0, "vy": 0,
