@@ -2,19 +2,22 @@ import cv2
 import time
 from Detection.Get_Var import *
 from Effect.Particeles import *
+from Effect.Interstellar_blackHole import create_interstellar_black_hole
+from Utileize import calculate_shoulder_speed
 from Projector_Connect import *
 
 
 def main():
     # Initialize webcam
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set camera width
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set camera height
     apply_glitch_effect = True
+
     initialize_particles()
-    
 
     prev_time = time.time()
+    
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -31,10 +34,10 @@ def main():
         prev_time = current_time 
 
         if get_dispersion_status():
-            dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
-            draw_glitch(frame)  # วาดอนุภาค Dispersion ลงบนเฟรมสีดำ
-            update_projector()
-            apply_glitch_effect = False  # ปิด Glitch Effect อย่างสมบูรณ์
+           dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
+           draw_glitch(frame)  # วาดอนุภาค Dispersion ลงบนเฟรมสีดำ
+           update_projector()
+           apply_glitch_effect = False  # ปิด Glitch Effect อย่างสมบูรณ์
             
         # Draw Body keypoints on frame
         if keypoint is not None:
@@ -53,10 +56,12 @@ def main():
         for keypoint in hand_keypoints:
             for x, y in keypoint:
                 cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
-        
+        #shoulder_speed = calculate_shoulder_speed(left_shoulder_x, right_shoulder_x, current_time)
+        #frame = create_interstellar_black_hole(frame, shoulder_speed)
         update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
         update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
         draw_gravity_swirl_particles(frame)
+
         if apply_glitch_effect and not get_dispersion_status():
             frame = update_glitch(frame, body_box, hands_together)
             draw_glitch(frame)

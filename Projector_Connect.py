@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 
 # Screen size
-projector_width = 3840  
-projector_height = 2160  
+projector_width = 1920  
+projector_height = 1080  
 
 cv2.namedWindow("Projector", cv2.WND_PROP_FULLSCREEN)
 cv2.setWindowProperty("Projector", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
