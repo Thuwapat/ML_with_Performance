@@ -67,9 +67,7 @@ def main():
             draw_glitch(frame)
             
         update_projector()
-        # Gray Filter
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
+        
         # Show frame
         cv2.imshow("Demo", frame)
         # Exit on 'q' key
