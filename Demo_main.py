@@ -56,8 +56,8 @@ def main():
         for keypoint in hand_keypoints:
             for x, y in keypoint:
                 cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
-        shoulder_speed = calculate_shoulder_speed(left_shoulder_x, right_shoulder_x, current_time)
-        frame = create_interstellar_black_hole(frame, shoulder_speed)
+        #shoulder_speed = calculate_shoulder_speed(left_shoulder_x, right_shoulder_x, current_time)
+        #frame = create_interstellar_black_hole(frame, shoulder_speed)
         update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
         update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
         draw_gravity_swirl_particles(frame)
