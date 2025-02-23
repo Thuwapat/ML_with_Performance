@@ -7,9 +7,9 @@ from Projector_Connect import *
 
 def main():
     # Initialize webcam
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)  # Set camera width
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)  # Set camera height
+    cap = cv2.VideoCapture(1)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set camera width
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set camera height
     apply_glitch_effect = True
     initialize_particles()
     
@@ -19,7 +19,7 @@ def main():
         ret, frame = cap.read()
         if not ret:
             break
-        frame = cv2.resize(frame, (1920, 1080))
+        frame = cv2.resize(frame, (640, 480))
         left_shoulder_x, right_shoulder_x, keypoint = get_post_keypoint(frame)
         hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
         left_hand, right_hand, handful, hand_center, hand_open, hands_together = detect_hand(frame)

@@ -3,8 +3,8 @@ import cv2
 import numpy as np  
 import time
 from Detection.Get_Var import get_body_mask
-projector_width = 1920  
-projector_height = 1080 
+from Projector_Connect import projector_width, projector_height
+
 
 # Screen size
 width, height = projector_width, projector_height
@@ -103,14 +103,17 @@ def update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open
 def draw_gravity_swirl_particles(frame):
     for particle in particles:
         if particle["opacity"] > 0:
+            px, py = scale_particle_position(particle["x"], particle["y"])
             color = (255, 255, 255, int(particle["opacity"]))  # ทำให้อนุภาคจางหายไป
-            cv2.circle(frame, (int(particle["x"]), int(particle["y"])), particle["size"], color, -1)
+            cv2.circle(frame, (px, py), particle["size"], color, -1)
         
         # วาดเส้นทางของอนุภาค (หาง)
         trail = particle_trails.get(id(particle), [])
         for i in range(1, len(trail)):
+            prev_px, prev_py = scale_particle_position(trail[i-1][0], trail[i-1][1])
+            curr_px, curr_py = scale_particle_position(trail[i][0], trail[i][1])
             alpha = int(255 * (i / len(trail)))  # ทำให้หางค่อยๆ จางลง
-            cv2.line(frame, (int(trail[i-1][0]), int(trail[i-1][1])), (int(trail[i][0]), int(trail[i][1])), (255, 255, 255, alpha), 1)
+            cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), (255, 255, 255, alpha), 1)
 
 def update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time):
     global particles, particle_trails
@@ -268,8 +271,9 @@ def update_glitch(frame, body_box, hands_together):
 def draw_glitch(frame):
     for particle in glitch_particles:
         if "color" in particle and particle["opacity"] > 0:
+            px, py = scale_particle_position(particle["x"], particle["y"])
             color = particle["color"]
-            cv2.circle(frame, (int(particle["x"]), int(particle["y"])), 2, color, -1)
+            cv2.circle(frame, (px, py), 2, color, -1)
 
 def update_body_orbit_particles(body_box, elapsed_time):
     global particles, particle_trails
@@ -296,3 +300,9 @@ def update_body_orbit_particles(body_box, elapsed_time):
         
         particle["vx"] *= 0.97  # ลด damping เพื่อให้อนุภาคยังคงเคลื่อนที่
         particle["vy"] *= 0.97
+
+def scale_particle_position(x, y):
+    """ปรับขนาดตำแหน่งอนุภาคจาก 640x480 ไปยัง 3840x2160"""
+    scale_x = projector_width / 640
+    scale_y = projector_height / 480
+    return int(x * scale_x), int(y * scale_y)
