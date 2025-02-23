@@ -35,7 +35,6 @@ def main():
 
         if get_dispersion_status():
            dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
-           draw_glitch(frame)  # วาดอนุภาค Dispersion ลงบนเฟรมสีดำ
            update_projector()
            apply_glitch_effect = False  # ปิด Glitch Effect อย่างสมบูรณ์
             
@@ -60,11 +59,9 @@ def main():
         #frame = create_interstellar_black_hole(frame, shoulder_speed)
         update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
         update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
-        draw_gravity_swirl_particles(frame)
 
         if apply_glitch_effect and not get_dispersion_status():
             frame = update_glitch(frame, body_box, hands_together)
-            draw_glitch(frame)
             
         update_projector()
 
