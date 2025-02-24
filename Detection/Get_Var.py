@@ -16,7 +16,7 @@ def get_post_keypoint(frame):
     results = model_post.predict(frame, device=DEVICE)
     
     if not results:
-        return None, None, None, None, None, None, None, []
+        return None, None, None, None, None, None  # คืนค่า 6 ตัว
 
     for result in results:
         if result.keypoints is not None:
@@ -29,9 +29,10 @@ def get_post_keypoint(frame):
                 left_wrist = tuple(keypoints[0][10]) if len(keypoints[0]) > 10 else None
                 right_wrist = tuple(keypoints[0][11]) if len(keypoints[0]) > 11 else None
                 
-                return left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, keypoints[0]
+                return left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist
     
-    return None, None, None, None, None, None, None, []
+    return None, None, None, None, None, None  # คืนค่า 6 ตัว
+
 
 
 
