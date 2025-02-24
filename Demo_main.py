@@ -15,7 +15,7 @@ def main():
     apply_glitch_effect = True
 
     initialize_particles()
-
+    
     prev_time = time.time()
     
     while cap.isOpened():
@@ -36,7 +36,7 @@ def main():
 
         if get_dispersion_status():
            dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
-           update_projector()
+           update_projector(frame)
            apply_glitch_effect = False  # ปิด Glitch Effect อย่างสมบูรณ์
             
         # Draw Body keypoints on frame
@@ -68,7 +68,7 @@ def main():
             frame = update_glitch(frame, body_box, hands_together)
         
         
-        update_projector()
+        update_projector(frame)
 
         # Show frame
         cv2.imshow("Demo", frame)

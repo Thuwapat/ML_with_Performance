@@ -38,6 +38,6 @@ def draw_rain(frame):
 def control_rain(frame):
     umbrellas = detect_umbrella(frame)
     if len(umbrellas) > 0:
-        update_rain()
+        print(f"Detected {len(umbrellas)} umbrellas")  # Debug ตรวจจับร่ม
+        update_rain()  # อัปเดตการเคลื่อนที่ของฝน
         draw_rain(frame)
-    return frame
