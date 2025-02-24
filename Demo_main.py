@@ -17,7 +17,9 @@ def main():
     initialize_particles()
     
     prev_time = time.time()
-    
+
+    active_effect = "all"  # ค่าเริ่มต้น: แสดงทุกเอฟเฟค
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -61,8 +63,12 @@ def main():
 
         #shoulder_speed = calculate_shoulder_speed(left_shoulder_x, right_shoulder_x, current_time)
         #frame = create_interstellar_black_hole(frame, shoulder_speed)
-        update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
-        update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
+        if active_effect == "gravity_swirl":
+            update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
+            update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
+        elif active_effect == "disperson":
+            frame = update_glitch(frame, body_box, hands_together)
+      
 
         if apply_glitch_effect and not get_dispersion_status():
             frame = update_glitch(frame, body_box, hands_together)
@@ -72,10 +78,16 @@ def main():
 
         # Show frame
         cv2.imshow("Demo", frame)
-        # Exit on 'q' key
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        # ตรวจจับคีย์บอร์ด
+        key = cv2.waitKey(1) & 0xFF  
+
+        if key == ord("q"):
             break
-        
+        elif key == ord("1"):
+            active_effect = "gravity_swirl"
+        elif key == ord("2"):
+            active_effect = "disperson"
+            
     cap.release()
     cv2.destroyAllWindows()
     
