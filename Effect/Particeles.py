@@ -313,3 +313,11 @@ def scale_particle_position(x, y):
     scale_x = projector_width / 640
     scale_y = projector_height / 480
     return int(x * scale_x), int(y * scale_y)
+
+def clear_all_particles():
+    """Completely clears all particles for switching effects"""
+    global particles, particle_trails, glitch_particles ,dispersion_started
+    particles = []
+    particle_trails = {}
+    glitch_particles = []
+    dispersion_started = False

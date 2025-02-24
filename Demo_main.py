@@ -67,10 +67,6 @@ def main():
         elif active_effect == "rain":
             rain_enabled = not rain_enabled
 
-        if apply_glitch_effect and not get_dispersion_status():
-            frame = update_glitch(frame, body_box, hands_together)
-        
-        
         update_projector(frame, rain_enabled)
 
         # Show frame
@@ -81,10 +77,13 @@ def main():
         if key == ord("q"):
             break
         elif key == ord("1"):
+            clear_all_particles()
             active_effect = "disperson"
         elif key == ord("2"):
+            clear_all_particles()
             active_effect = "gravity_swirl"
         elif key == ord("3"):
+            clear_all_particles()
             active_effect = "rain"
             
     cap.release()
