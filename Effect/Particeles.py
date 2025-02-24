@@ -111,7 +111,7 @@ def draw_gravity_swirl_particles(frame):
     for particle in particles:
         if particle["opacity"] > 0:
             px, py = scale_particle_position(particle["x"], particle["y"])
-            color = (0, 0, 0, int(particle["opacity"]))  # ทำให้อนุภาคจางหายไป
+            color = (255, 255, 255, int(particle["opacity"]))  # ทำให้อนุภาคจางหายไป
             cv2.circle(frame, (px, py), particle["size"], color, -1)
         
         # วาดเส้นทางของอนุภาค (หาง)
