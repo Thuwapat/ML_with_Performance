@@ -120,7 +120,7 @@ def draw_gravity_swirl_particles(frame):
             prev_px, prev_py = scale_particle_position(trail[i-1][0], trail[i-1][1])
             curr_px, curr_py = scale_particle_position(trail[i][0], trail[i][1])
             alpha = int(255 * (i / len(trail)))  # ทำให้หางค่อยๆ จางลง
-            cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), (0, 0, 0, alpha), 1)
+            cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), (255, 255, 255, alpha), 1)
 
 def update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time):
     global particles, particle_trails
@@ -179,7 +179,7 @@ def extract_body_pixels(frame):
     for i in range(0, body_pixels.shape[0], 5):
         for j in range(0, body_pixels.shape[1], 5):
             if body_mask[i, j] > 0:  # ตรวจว่าเป็นส่วนของร่างกาย
-                color = (0, 0, 0)  # อนุภาคเป็นสีขาว
+                color = (255, 255, 255)  # อนุภาคเป็นสีขาว
                 glitch_particles.append({
                     "x": j, "y": i,
                     "vx": 0, "vy": 0,
