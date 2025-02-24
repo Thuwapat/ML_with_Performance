@@ -9,7 +9,7 @@ from Projector_Connect import *
 
 def main():
     # Initialize webcam
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set camera width
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set camera height
 
@@ -25,7 +25,9 @@ def main():
         if not ret:
             break
         frame = cv2.resize(frame, (640, 480))
-        left_shoulder_x, right_shoulder_x, keypoint = get_post_keypoint(frame)
+        left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, keypoints = get_post_keypoint(frame)
+    
+        body_keypoints = [left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist]
         hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
         left_hand, right_hand, handful, hand_center, hand_open, hands_together = detect_hand(frame)
         body_box = detect_body(frame)
@@ -37,8 +39,8 @@ def main():
         prev_time = current_time 
             
         # Draw Body keypoints on frame
-        if keypoint is not None:
-            for x, y in keypoint:
+        if keypoints is not None:
+            for x, y in keypoints:
                 cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
          # Draw hand marker (for visualization)
         if hand_center is not None:
@@ -62,7 +64,7 @@ def main():
             update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
             update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
         elif active_effect == "disperson":
-            frame = update_glitch(frame, body_box, hands_together)
+             frame = update_glitch(frame, body_box, body_keypoints)
         elif active_effect == "rain":
             rain_enabled = not rain_enabled
 

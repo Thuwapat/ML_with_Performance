@@ -45,3 +45,27 @@ def calculate_shoulder_speed(left_shoulder_x, right_shoulder_x, current_time):
 
     # ✅ คืนค่า Moving Average ของค่า Speed
     return np.mean(speed_buffer)
+
+def is_arms_raised(left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, threshold=150):
+    """ เช็คว่าทำท่ากางแขนหรือไม่ """
+
+    if None in [left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist]:
+        return False  # ถ้าข้อมูลหายไปบางส่วน ให้ return False
+
+    left_shoulder_y, right_shoulder_y = left_shoulder[1], right_shoulder[1]
+    left_elbow_y, right_elbow_y = left_elbow[1], right_elbow[1]
+    left_wrist_y, right_wrist_y = left_wrist[1], right_wrist[1]
+
+    # ข้อมือสูงกว่าหรือใกล้ระดับไหล่
+    wrist_near_shoulder = (
+        abs(left_wrist_y - left_shoulder_y) < threshold and abs(right_wrist_y - right_shoulder_y) < threshold
+    )
+
+    # ศอกอยู่ระหว่างไหล่และข้อมือ
+    elbow_position_valid = (
+        left_shoulder_y < left_elbow_y < left_wrist_y and right_shoulder_y < right_elbow_y < right_wrist_y
+    )
+
+    return wrist_near_shoulder and elbow_position_valid
+
+

@@ -4,7 +4,7 @@ import numpy as np
 import time
 from Detection.Get_Var import get_body_mask
 from Projector_Connect import projector_width, projector_height
-
+from Utileize import is_arms_raised
 
 # Screen size
 width, height = projector_width, projector_height
@@ -235,12 +235,12 @@ def get_dispersion_status():
     global dispersion_started
     return dispersion_started
 
-def update_glitch(frame, body_box, hands_together):
+def update_glitch(frame, body_box, body_keypoints):
     global glitch_particles, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
-    if hands_together and body_box and not glitch_active:
-        extract_body_pixels(frame)
-        glitch_start_time = time.time()  
+    if body_keypoints and is_arms_raised(*body_keypoints):  # 🔥 ใช้เงื่อนไขกางแขนแทน
+        extract_body_pixels(frame)  # เริ่มเอฟเฟกต์
+        glitch_start_time = time.time()
         effect_reset_time = glitch_start_time + cooldown_time  
 
     if glitch_active:
@@ -256,24 +256,10 @@ def update_glitch(frame, body_box, hands_together):
     if dispersion_started:
         dispersion_effect(body_box)
 
-    #  Allow particles to move freely by reducing constraints
-    if effect_reset_time is None or time.time() < effect_reset_time:  
-        glitch_particles[:] = [p for p in glitch_particles if p["opacity"] > 0]  
-        for particle in glitch_particles:
-            particle["x"] += particle["vx"] + random.uniform(-1, 1)  # Add slight randomness to movement
-            particle["y"] += particle["vy"] + random.uniform(-1, 1)  
-
-            # Reduce damping effect to keep particles moving longer
-            particle["vx"] *= 0.95  
-            particle["vy"] *= 0.95  
-
-            particle["opacity"] -= 1  
-
-            # Keep particles within screen
-            particle["x"] = np.clip(particle["x"], 0, width)
-            particle["y"] = np.clip(particle["y"], 0, height)
-
     return frame
+
+
+
 
 def draw_glitch(frame):
     for particle in glitch_particles:

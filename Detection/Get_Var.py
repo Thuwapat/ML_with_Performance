@@ -16,17 +16,47 @@ def get_post_keypoint(frame):
     results = model_post.predict(frame, device=DEVICE)
     
     if not results:
-        return None, None, []
-    
+        return None, None, None, None, None, None, None, []
+
     for result in results:
         if result.keypoints is not None:
             keypoints = result.keypoints.xy.cpu().numpy()
-            if keypoints.shape[1] >= 7:
-                left_shoulder_x = keypoints[0][5][0] if len(keypoints[0]) > 5 else None
-                right_shoulder_x = keypoints[0][6][0] if len(keypoints[0]) > 6 else None
-                return left_shoulder_x, right_shoulder_x, keypoints[0]
+            if keypoints.shape[1] >= 12:
+                left_shoulder = tuple(keypoints[0][6]) if len(keypoints[0]) > 6 else None
+                right_shoulder = tuple(keypoints[0][7]) if len(keypoints[0]) > 7 else None
+                left_elbow = tuple(keypoints[0][8]) if len(keypoints[0]) > 8 else None
+                right_elbow = tuple(keypoints[0][9]) if len(keypoints[0]) > 9 else None
+                left_wrist = tuple(keypoints[0][10]) if len(keypoints[0]) > 10 else None
+                right_wrist = tuple(keypoints[0][11]) if len(keypoints[0]) > 11 else None
+                
+                return left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, keypoints[0]
     
-    return None, None, []
+    return None, None, None, None, None, None, None, []
+
+
+
+
+#def get_post_keypoint1(frame):
+#    results = model_post.predict(frame, device=DEVICE)
+#    
+#    if not results:
+#        return None, None, {}
+#
+#    for result in results:
+#        if result.keypoints is not None:
+#            keypoints = result.keypoints.xy.cpu().numpy()
+#            if keypoints.shape[1] >= 11:
+#                body_keypoints = {
+#                    "left_shoulder": keypoints[0][5][0], 
+#                    "right_shoulder": keypoints[0][6][0],
+#                    "left_elbow": keypoints[0][7][0],
+#                    "right_elbow": keypoints[0][8][0],
+#                    "left_wrist": keypoints[0][9][0],
+#                    "right_wrist": keypoints[0][10][0],
+#                }
+#                return body_keypoints
+#
+#    return {}
 
 def get_hand_keypoint(frame):
     results = model_hand.predict(frame, device=DEVICE)
