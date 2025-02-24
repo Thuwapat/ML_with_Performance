@@ -66,7 +66,7 @@ def main():
             update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
             update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
         elif active_effect == "disperson":
-             frame = update_glitch(frame, body_box, body_keypoints)
+             frame = update_dispersion(frame, body_box, body_keypoints)
         elif active_effect == "rain":
             rain_enabled = not rain_enabled
 
