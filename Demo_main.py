@@ -87,6 +87,7 @@ def main():
             active_effect = "disperson"
         elif key == ord("2"):
             active_effect = "gravity_swirl"
+            
     cap.release()
     cv2.destroyAllWindows()
     

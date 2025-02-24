@@ -78,7 +78,7 @@ def detect_hand(frame):
             
             if left_hand and right_hand:
                 distance = np.sqrt((left_hand[0] - right_hand[0])**2 + (left_hand[1] - right_hand[1])**2)
-                hands_together = distance < width * 0.1
+                hands_together = distance < width * 1
     
     return left_hand, right_hand, handful, hand_center, hand_open, hands_together
 
