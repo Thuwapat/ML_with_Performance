@@ -47,7 +47,7 @@ def create_particles_at_hand(hand_positions):
                 "vx": random.uniform(-5, 5),  # เพิ่มความเร็วของอนุภาค
                 "vy": random.uniform(-5, 5),
                 "opacity": 255,
-                "size": random.randint(1, 3),  # ลดขนาดของอนุภาคให้เล็กลงแบบสุ่ม
+                "size": random.randint(1, 5),  # ลดขนาดของอนุภาคให้เล็กลงแบบสุ่ม
             }
             particles.append(new_particle)
             particle_trails[id(new_particle)] = []  # เริ่มเก็บข้อมูลเส้นทางของอนุภาค
@@ -104,10 +104,6 @@ def update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open
 def draw_gravity_swirl_particles(frame):
     global previous_particle_frame
 
-    #if previous_particle_frame is not None:
-    #    frame[:] = previous_particle_frame  # ✅ ใช้ค่าเดิมถ้าไม่มีการเปลี่ยนแปลง
-    #    return
-    
     for particle in particles:
         if particle["opacity"] > 0:
             px, py = scale_particle_position(particle["x"], particle["y"])
@@ -187,22 +183,6 @@ def extract_body_pixels(frame):
                     "color": color
                 })
 
-def apply_glitch_effect(frame, body_box, glitch_intensity):
-    x1, y1, x2, y2 = body_box  
-
-    # Gradually increase glitch intensity over time
-    max_shift = int(5 + 25 * glitch_intensity)
-
-    for i in range(y1, y2, 10):
-        shift = random.randint(-max_shift, max_shift)
-        frame[i:i+5, x1:x2] = np.roll(frame[i:i+5, x1:x2], shift, axis=1)
-
-    for j in range(x1, x2, 10):
-        shift = random.randint(-max_shift, max_shift)
-        frame[y1:y2, j:j+5] = np.roll(frame[y1:y2, j:j+5], shift, axis=0)
-
-    return frame
-
 def dispersion_effect(body_box):
     global glitch_particles
     if body_box is None:
@@ -235,7 +215,7 @@ def get_dispersion_status():
     global dispersion_started
     return dispersion_started
 
-def update_glitch(frame, body_box, body_keypoints):
+def update_dispersion(frame, body_box, body_keypoints):
     global glitch_particles, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
     if body_keypoints and is_arms_raised(*body_keypoints):  # 🔥 ใช้เงื่อนไขกางแขนแทน
@@ -244,24 +224,16 @@ def update_glitch(frame, body_box, body_keypoints):
         effect_reset_time = glitch_start_time + cooldown_time  
 
     if glitch_active:
-        elapsed_time = time.time() - glitch_start_time if glitch_start_time is not None else 0  
-        glitch_intensity = min(1, elapsed_time / glitch_duration)
 
-        if elapsed_time < glitch_duration:
-            frame = apply_glitch_effect(frame, body_box, glitch_intensity)
-        else:
-            glitch_active = False
-            dispersion_started = True  
+        glitch_active = False
+        dispersion_started = True  
 
     if dispersion_started:
         dispersion_effect(body_box)
 
     return frame
 
-
-
-
-def draw_glitch(frame):
+def draw_dispersion(frame):
     for particle in glitch_particles:
         if "color" in particle and particle["opacity"] > 0:
             px, py = scale_particle_position(particle["x"], particle["y"])
