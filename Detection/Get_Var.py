@@ -9,8 +9,8 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # โหลดโมเดล YOLO เพียงครั้งเดียว
 model_post = YOLO("./Detection/yolo11n-pose.pt").to(DEVICE)
 model_hand = YOLO("./Detection/hand_detection.pt").to(DEVICE)
-model_object = YOLO("./Detection/yolo11n.pt").to(DEVICE)
-model_seg = YOLO("./Detection/yolo11n-seg.pt").to(DEVICE)
+model_object = YOLO("./Detection/yolo11x.pt").to(DEVICE)
+model_seg = YOLO("./Detection/yolo11x-seg.pt").to(DEVICE)
 
 def get_post_keypoint(frame):
     results = model_post.predict(frame, device=DEVICE)
@@ -115,3 +115,18 @@ def get_body_mask(frame):
                 return largest_mask
     
     return None
+
+def detect_umbrella(frame):
+    """ตรวจจับร่มในเฟรมและคืนค่ากล่องรอบวัตถุ"""
+    results = model_object.predict(frame, device=DEVICE)
+    
+    umbrella_boxes = []
+    for result in results:
+        if result.boxes is not None and len(result.boxes) > 0:
+            boxes = result.boxes.xyxy.cpu().numpy()
+            class_ids = result.boxes.cls.cpu().numpy()
+            for i, box in enumerate(boxes):
+                if int(class_ids[i]) == 28:  # หมายเลขคลาสของร่ม
+                    umbrella_boxes.append(box)
+    
+    return umbrella_boxes

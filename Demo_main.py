@@ -62,7 +62,8 @@ def main():
 
         if apply_glitch_effect and not get_dispersion_status():
             frame = update_glitch(frame, body_box, hands_together)
-            
+        
+        
         update_projector()
 
         # Show frame

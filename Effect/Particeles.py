@@ -309,7 +309,7 @@ def update_body_orbit_particles(body_box, elapsed_time):
         particle["vy"] *= 0.97
 
 def scale_particle_position(x, y):
-    """ปรับขนาดตำแหน่งอนุภาคจาก 640x480 ไปยัง 3840x2160"""
+    """ปรับขนาดตำแหน่งอนุภาค"""
     scale_x = projector_width / 640
     scale_y = projector_height / 480
     return int(x * scale_x), int(y * scale_y)

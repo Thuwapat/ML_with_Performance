@@ -1,87 +1,43 @@
-from ultralytics import YOLO
-import numpy as np
 import cv2
+import numpy as np
+import random
+from Detection.Get_Var import detect_umbrella
 
+# ตัวแปรเก็บอนุภาคฝน
+rain_particles = []
+num_drops = 500  # จำนวนหยดฝน
 
-model_post = YOLO("./Detection/yolo11n-pose.pt").to('cuda')
-model_hand = YOLO("./Detection/hand_detection.pt").to('cuda')
-model_object = YOLO("./Detection/yolo11n.pt").to('cuda')
-model_phone = YOLO("./Detection/yolo11n.pt").to('cuda')  
+# ฟังก์ชันเริ่มต้นฝน
+def initialize_rain():
+    global rain_particles
+    rain_particles = []
+    for _ in range(num_drops):
+        x = random.randint(0, 1920)  # ขนาดจอโปรเจคเตอร์
+        y = random.randint(0, 1080)
+        length = random.randint(5, 15)
+        thickness = 2
+        wind = random.randint(-1, 2)
+        rain_particles.append({"x": x, "y": y, "length": length, "thickness": thickness, "wind": wind})
 
-def detect_phone(frame):
-   
-    results = model_phone.predict(frame)
+# อัปเดตฝน
+def update_rain():
+    global rain_particles
+    for drop in rain_particles:
+        drop["y"] += drop["length"]  # ฝนตกลงมา
+        drop["x"] += drop["wind"]  # มีการเอียงตามลม
+        if drop["y"] > 1080:
+            drop["y"] = random.randint(-50, 0)  # รีเซ็ตตำแหน่งด้านบน
+            drop["x"] = random.randint(0, 1920)
 
-    phone_boxes = []
-    for result in results:
-        if result.boxes is not None and len(result.boxes) > 0:
-            boxes = result.boxes.xyxy.cpu().numpy()
-            class_ids = result.boxes.cls.cpu().numpy()  
-            for i, box in enumerate(boxes):
-                if int(class_ids[i]) == 67:  
-                    phone_boxes.append(box)
+# วาดฝน
+def draw_rain(frame):
+    for drop in rain_particles:
+        cv2.line(frame, (drop["x"], drop["y"]), (drop["x"], drop["y"] + drop["length"]), (0, 0, 0), drop["thickness"])
 
-    return phone_boxes
-
-# def add_rain_effect(frame):
-    
-#     rain_layer = np.zeros_like(frame, dtype=np.uint8)
-#     h, w, _ = frame.shape
-
-#     num_drops = 100  
-#     for _ in range(num_drops):
-#         x = np.random.randint(0, w)
-#         y = np.random.randint(0, h)
-#         length = np.random.randint(5, 15)
-#         cv2.line(rain_layer, (x, y), (x, y + length), (255, 255, 255), 1)
-
-#     frame_with_rain = cv2.addWeighted(frame, 0.8, rain_layer, 0.2, 0)
-#     return frame_with_rain
-
-def add_rain_effect(frame):
-    rain_layer = np.zeros_like(frame, dtype=np.uint8)
-    h, w, _ = frame.shape
-    
-    num_fine = 500
-    for _ in range(num_fine):
-        x = np.random.randint(0, w)
-        y = np.random.randint(0, h)
-        length = np.random.randint(5, 15)
-        thickness = 1
-      
-        wind = np.random.randint(-1, 2)
-        cv2.line(rain_layer, (x, y), (x + wind, y + length), (200, 200, 200), thickness)
-
-
-    frame_with_rain = cv2.addWeighted(frame, 0.8, rain_layer, 0.3, 0)
-    return frame_with_rain
-
-
-def process_frame(frame):
-    
-    phones = detect_phone(frame)  
-
-    if len(phones) > 0: 
-        frame = add_rain_effect(frame)  
-
+# ตรวจจับร่ม และควบคุมฝน
+def control_rain(frame):
+    umbrellas = detect_umbrella(frame)
+    if len(umbrellas) > 0:
+        update_rain()
+        draw_rain(frame)
     return frame
-
-
-cap = cv2.VideoCapture(0)
-
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    frame = process_frame(frame)
-    # Gray Filter
-    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
-    cv2.imshow("Rain Effect with Phone Detection", frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
