@@ -18,7 +18,8 @@ def main():
     
     prev_time = time.time()
 
-    active_effect = "all"  # ค่าเริ่มต้น: แสดงทุกเอฟเฟค
+    active_effect = "none"
+    rain_enabled = False 
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -35,11 +36,6 @@ def main():
         current_time = time.time()
         elapsed_time = current_time - prev_time
         prev_time = current_time 
-
-        if get_dispersion_status():
-           dispersion_effect(body_box)  # ทำให้อนุภาค Dispersion ยังคงเคลื่อนที่ออกจากจอ
-           update_projector(frame)
-           apply_glitch_effect = False  # ปิด Glitch Effect อย่างสมบูรณ์
             
         # Draw Body keypoints on frame
         if keypoint is not None:
@@ -68,13 +64,14 @@ def main():
             update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
         elif active_effect == "disperson":
             frame = update_glitch(frame, body_box, hands_together)
-      
+        elif active_effect == "rain":
+            rain_enabled = not rain_enabled
 
         if apply_glitch_effect and not get_dispersion_status():
             frame = update_glitch(frame, body_box, hands_together)
         
         
-        update_projector(frame)
+        update_projector(frame, rain_enabled)
 
         # Show frame
         cv2.imshow("Demo", frame)
@@ -87,6 +84,8 @@ def main():
             active_effect = "disperson"
         elif key == ord("2"):
             active_effect = "gravity_swirl"
+        elif key == ord("3"):
+            active_effect = "rain"
             
     cap.release()
     cv2.destroyAllWindows()
