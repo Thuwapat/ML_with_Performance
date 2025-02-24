@@ -26,9 +26,8 @@ def main():
             break
         frame = cv2.resize(frame, (640, 480))
             # รับค่าจาก get_post_keypoint() (6 ค่า)
-        left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist = get_post_keypoint(frame)
+        left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, all_keypoints = get_post_keypoint(frame)
 
-        # รวม Keypoints ไว้เป็น list เพื่อใช้ต่อ
         body_keypoints = [left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist]
 
         hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
@@ -42,9 +41,9 @@ def main():
         prev_time = current_time 
             
         # Draw Body keypoints on frame
-        #if keypoints is not None:
-        #    for x, y in keypoints:
-        #        cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
+        if all_keypoints is not None:
+            for x, y in all_keypoints:
+                cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
          # Draw hand marker (for visualization)
         if hand_center is not None:
             color = (0, 255, 0) if hand_open else (0, 0, 255)  # Green for open, Red for fist
