@@ -1,137 +1,117 @@
 from ultralytics import YOLO
 import numpy as np
 import cv2
+import torch
 
-# Load YOLO model
-model_post = YOLO("./Detection/yolo11n-pose.pt")
-model_post.to('cuda')
-model_hand = YOLO("./Detection/hand_detection.pt")
-model_hand.to('cuda')
-model_object = YOLO("./Detection/yolo11n.pt")
-model_object.to('cuda')
-model_seg = YOLO("./Detection/yolo11n-seg.pt")
-model_seg.to('cuda')
+# ตรวจสอบว่ามี GPU หรือไม่
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+# โหลดโมเดล YOLO เพียงครั้งเดียว
+model_post = YOLO("./Detection/yolo11n-pose.pt").to(DEVICE)
+model_hand = YOLO("./Detection/hand_detection.pt").to(DEVICE)
+model_object = YOLO("./Detection/yolo11n.pt").to(DEVICE)
+model_seg = YOLO("./Detection/yolo11n-seg.pt").to(DEVICE)
 
 def get_post_keypoint(frame):
-    results = model_post.predict(frame)
-
+    results = model_post.predict(frame, device=DEVICE)
+    
+    if not results:
+        return None, None, []
+    
     for result in results:
         if result.keypoints is not None:
             keypoints = result.keypoints.xy.cpu().numpy()
-
-            if keypoints.shape[1] >= 7:  # Ensure shoulders exist
-                for keypoint in keypoints:
-                    left_shoulder_x = keypoint[5][0] if len(keypoint) > 5 else None
-                    right_shoulder_x = keypoint[6][0] if len(keypoint) > 6 else None
-                    return left_shoulder_x, right_shoulder_x, keypoint  # Return keypoints too
+            if keypoints.shape[1] >= 7:
+                left_shoulder_x = keypoints[0][5][0] if len(keypoints[0]) > 5 else None
+                right_shoulder_x = keypoints[0][6][0] if len(keypoints[0]) > 6 else None
+                return left_shoulder_x, right_shoulder_x, keypoints[0]
+    
     return None, None, []
 
 def get_hand_keypoint(frame):
-    results = model_hand.predict(frame)
-
-    hand_boxes = []  # Store bounding boxes
-    hand_keypoints = []  # Store keypoints
-
-    left_hand, right_hand = None, None  # Default values if hands not detected
-
+    results = model_hand.predict(frame, device=DEVICE)
+    
+    hand_boxes, hand_keypoints = [], []
+    left_hand, right_hand = None, None
+    
     for result in results:
-        if result.boxes is not None and len(result.boxes) > 0:  # Check if hands detected
-            boxes = result.boxes.xyxy.cpu().numpy()
-            hand_boxes.extend(boxes)  # Add detected boxes
+        if result.boxes is not None:
+            hand_boxes.extend(result.boxes.xyxy.cpu().numpy())
+        if result.keypoints is not None:
+            hand_keypoints.extend(result.keypoints.xy.cpu().numpy())
 
-        if result.keypoints is not None and len(result.keypoints) > 0:  # Check if keypoints exist
-            keypoints = result.keypoints.xy.cpu().numpy()
-            hand_keypoints.extend(keypoints)
-
-            #  Ensure at least 2 hands exist before assignment
-            if len(hand_keypoints) > 0:
-                left_hand = hand_keypoints[0][:2] if len(hand_keypoints[0]) >= 2 else None
-            if len(hand_keypoints) > 1:
-                right_hand = hand_keypoints[1][:2] if len(hand_keypoints[1]) >= 2 else None
-
+    if len(hand_keypoints) > 0:
+        left_hand = hand_keypoints[0][:2] if len(hand_keypoints[0]) >= 2 else None
+    if len(hand_keypoints) > 1:
+        right_hand = hand_keypoints[1][:2] if len(hand_keypoints[1]) >= 2 else None
+    
     return hand_boxes, hand_keypoints, left_hand, right_hand
 
-# Placeholder for hand tracking 
 def detect_hand(frame):
-    results = model_hand.predict(frame)
-
-    left_hand, right_hand = None, None  
-    handful = False
-    hand_center, hand_open = None, False  
-    hands_together = False
+    results = model_hand.predict(frame, device=DEVICE)
+    
+    left_hand, right_hand = None, None
+    handful, hand_open, hands_together = False, False, False
+    hand_center = None
+    
     height, width, _ = frame.shape
+    
     for result in results:
-        if result.boxes is not None and len(result.boxes) > 0:  
+        if result.boxes is not None:
             boxes = result.boxes.xyxy.cpu().numpy()
-            keypoints = result.keypoints.xy.cpu().numpy() if result.keypoints is not None else []
+            keypoints = result.keypoints.xy.cpu().numpy() if result.keypoints is not None and len(result.keypoints) > 0 else []
             
             if len(boxes) >= 1:
                 left_hand = (int((boxes[0][0] + boxes[0][2]) / 2), int((boxes[0][1] + boxes[0][3]) / 2))
-
-            if len(boxes) >= 2:  
+            if len(boxes) >= 2:
                 right_hand = (int((boxes[1][0] + boxes[1][2]) / 2), int((boxes[1][1] + boxes[1][3]) / 2))
-
-            hand_center = left_hand if right_hand is None else right_hand  
-
-            if len(keypoints) > 0:
-                # ดึงค่า keypoints ของฝ่ามือ (จุด 0) และปลายนิ้ว (จุด 8, 12, 16, 20)
-                palm_y = keypoints[0][0, 1]  # ฝ่ามือ (wrist)
-                finger_tips_y = [keypoints[0][i, 1] for i in [8, 12, 16, 20]]  # ปลายนิ้วทั้งหมด
-                
-                # คำนวณค่าเฉลี่ยของปลายนิ้ว
+            
+            hand_center = left_hand if right_hand is None else right_hand
+            
+            if len(keypoints) > 0 and keypoints[0].shape[0] >= 21:
+                palm_y = keypoints[0][0, 1]
+                finger_tips_y = [keypoints[0][i, 1] for i in [8, 12, 16, 20]]
                 avg_finger_tip_y = np.mean(finger_tips_y)
-                
-                # ถ้าปลายนิ้วอยู่สูงกว่าฝ่ามือมากกว่า threshold → แบมือ
-                threshold = 30  # ปรับค่าตามต้องการ
+                threshold = 30
                 hand_open = avg_finger_tip_y < (palm_y - threshold)
                 handful = not hand_open
-
-            if left_hand is not None and right_hand is not None:
+            
+            if left_hand and right_hand:
                 distance = np.sqrt((left_hand[0] - right_hand[0])**2 + (left_hand[1] - right_hand[1])**2)
-                hands_together = distance < width * 1  # ใช้ระยะห่างเป็นเปอร์เซ็นต์ของภาพ
-            else:
-                hands_together = False  # ถ้ามีมือเดียวให้ถือว่าไม่ได้อยู่ใกล้กัน
-
+                hands_together = distance < width * 0.1
+    
     return left_hand, right_hand, handful, hand_center, hand_open, hands_together
 
-
 def detect_body(frame):
-    results = model_object.predict(frame)
-
-    body_box = None  
-
+    results = model_object.predict(frame, device=DEVICE)
+    
     for result in results:
-        if result.boxes is not None and len(result.boxes) > 0:  
-            boxes = result.boxes.xyxy.cpu().numpy()
-
-            if len(boxes) > 0:
-                x1, y1, x2, y2 = boxes[0]  
-                body_box = (int(x1), int(y1), int(x2), int(y2))  
-
-    return body_box
+        if result.boxes is not None and len(result.boxes) > 0:
+            x1, y1, x2, y2 = map(int, result.boxes.xyxy.cpu().numpy()[0])
+            return x1, y1, x2, y2
+    
+    return None
 
 def get_body_mask(frame):
-    results = model_seg.predict(frame)
+    results = model_seg.predict(frame, device=DEVICE)
     
     if results:
-        combined_mask = np.zeros((frame.shape[0], frame.shape[1]), dtype=np.uint8)  # Mask เริ่มต้น
-
+        combined_mask = np.zeros((frame.shape[0], frame.shape[1]), dtype=np.uint8)
+        
         for result in results:
             if result.masks is not None:
                 for mask_data in result.masks.data:
                     mask = mask_data.cpu().numpy()
                     mask = (mask * 255).astype(np.uint8)
                     mask = cv2.resize(mask, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST)
-                    combined_mask = np.maximum(combined_mask, mask)  # รวม Mask
-
+                    combined_mask = np.maximum(combined_mask, mask)
+        
         if np.any(combined_mask):
-            # **🔥 ใช้ Contour Detection หา Mask ที่ใหญ่ที่สุด**
             contours, _ = cv2.findContours(combined_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             if contours:
                 largest_contour = max(contours, key=cv2.contourArea)
                 largest_mask = np.zeros_like(combined_mask)
                 cv2.drawContours(largest_mask, [largest_contour], -1, 255, thickness=cv2.FILLED)
-                return largest_mask  # คืนค่า Mask ที่ใหญ่ที่สุด
-
+                return largest_mask
+    
     return None
-

@@ -9,7 +9,7 @@ from Projector_Connect import *
 
 def main():
     # Initialize webcam
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set camera width
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set camera height
     apply_glitch_effect = True
