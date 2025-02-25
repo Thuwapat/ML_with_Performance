@@ -52,54 +52,47 @@ def create_particles_at_hand(hand_positions):
             particles.append(new_particle)
             particle_trails[id(new_particle)] = []  # เริ่มเก็บข้อมูลเส้นทางของอนุภาค
 
-def update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time):
+def update_gravity_swirl_particles(body_box, elapsed_time):
     global particles, particle_trails
-    hand_positions = []
-    if hand_center is None:
+
+    if body_box is None:
         for particle in particles:
-            particle["opacity"] -= 5  # ลดความโปร่งใสของอนุภาคเมื่อไม่มีมือ
+            particle["opacity"] -= 5  # ทำให้อนุภาคจางหายไปหากไม่มีร่างกายในเฟรม
             if particle["opacity"] <= 0:
-                particle_trails.pop(id(particle), None)  # ลบเส้นทางของอนุภาคที่หายไป
-                particles.remove(particle)  # ลบอนุภาคที่จางจนมองไม่เห็นออกจากลิสต์
+                particle_trails.pop(id(particle), None)
+                particles.remove(particle)
         return
 
-    hand_x, hand_y = hand_center
-    min_force = 10  # เพิ่มแรงดึงดูดของอนุภาค
+    # ใช้ body_box เป็นจุดกำเนิดของอนุภาค
+    x1, y1, x2, y2 = body_box
+    body_center_x = (x1 + x2) // 2
+    body_center_y = (y1 + y2) // 2
 
-    if hand_open:
-        if left_hand is not None:
-            hand_positions.append(left_hand)
-        if right_hand is not None:
-            hand_positions.append(right_hand)
-
-        create_particles_at_hand(hand_positions)  # สร้างอนุภาคที่มือเมื่อกำหมัด
+    for _ in range(10):  # สุ่มสร้างอนุภาครอบๆ body_box
+        new_particle = {
+            "x": body_center_x + random.randint(-50, 50),
+            "y": body_center_y + random.randint(-50, 50),
+            "vx": random.uniform(-5, 5),
+            "vy": random.uniform(-5, 5),
+            "opacity": 255,
+            "size": random.randint(5, 10),
+        }
+        particles.append(new_particle)
+        particle_trails[id(new_particle)] = []  # ✅ เริ่มเก็บเส้นทางของอนุภาค
 
     for particle in particles:
-        dx = particle["x"] - hand_x
-        dy = particle["y"] - hand_y
-        distance = max(np.sqrt(dx**2 + dy**2), 1)
-        
-        dx /= distance
-        dy /= distance
-        
-        if handful:
-            force = max(min_force, 5 / distance)  # ลดแรงผลักออกเพื่อให้หมุนช้าลง
-            dx, dy = -dy * 0.5, dx * 0.5  # ลดความเร็วของการหมุนออก
-            particle["vx"] += dx * force * elapsed_time
-            particle["vy"] += dy * force * elapsed_time
-        
         particle["x"] += particle["vx"]
         particle["y"] += particle["vy"]
-        
-        particle["vx"] *= 0.97  # ลด damping เพื่อให้อนุภาคยังคงเคลื่อนที่เร็วขึ้น
+        particle["vx"] *= 0.97
         particle["vy"] *= 0.97
-        
-        # บันทึกเส้นทางของอนุภาคเพื่อสร้างหาง
+
+        # ✅ บันทึกเส้นทางของอนุภาค
         trail = particle_trails.get(id(particle), [])
         trail.append((particle["x"], particle["y"]))
         if len(trail) > 10:  # จำกัดความยาวของหางอนุภาค
             trail.pop(0)
         particle_trails[id(particle)] = trail
+
 
 def draw_gravity_swirl_particles(frame):
     global previous_particle_frame
@@ -109,8 +102,8 @@ def draw_gravity_swirl_particles(frame):
             px, py = scale_particle_position(particle["x"], particle["y"])
             color = (255, 255, 255, int(particle["opacity"]))  # ทำให้อนุภาคจางหายไป
             cv2.circle(frame, (px, py), particle["size"], color, -1)
-        
-        # วาดเส้นทางของอนุภาค (หาง)
+
+        # ✅ วาดเส้นทางของอนุภาค (หาง)
         trail = particle_trails.get(id(particle), [])
         for i in range(1, len(trail)):
             prev_px, prev_py = scale_particle_position(trail[i-1][0], trail[i-1][1])
@@ -118,8 +111,10 @@ def draw_gravity_swirl_particles(frame):
             alpha = int(255 * (i / len(trail)))  # ทำให้หางค่อยๆ จางลง
             cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), (255, 255, 255, alpha), 1)
 
-def update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time):
+
+def update_body_energy_particles(body_box, elapsed_time):
     global particles, particle_trails
+
     if body_box is None:
         return
 
@@ -127,29 +122,40 @@ def update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
     body_center_x = (x1 + x2) // 2
     body_center_y = (y1 + y2) // 2
 
+    for _ in range(10):  # สร้างอนุภาคพลังงานรอบร่างกาย
+        new_particle = {
+            "x": random.randint(x1, x2),
+            "y": random.randint(y1, y2),
+            "vx": random.uniform(-3, 3),
+            "vy": random.uniform(-3, 3),
+            "opacity": 255,
+            "size": random.randint(5, 10),
+        }
+        particles.append(new_particle)
+        particle_trails[id(new_particle)] = []  # ✅ เริ่มเก็บเส้นทางของอนุภาค
+
     for particle in particles:
         dx = body_center_x - particle["x"]
         dy = body_center_y - particle["y"]
         distance = max(np.sqrt(dx**2 + dy**2), 1)
 
-        # ให้อนุภาคเคลื่อนที่โคจรรอบร่างกาย
         force = 8 / distance
-        dx, dy = -dy, dx  # หมุน 90 องศาให้เป็นการโคจรรอบ
-
+        dx, dy = -dy, dx
         particle["vx"] += dx * force * elapsed_time
         particle["vy"] += dy * force * elapsed_time
 
-        # ถ้ามือยกขึ้นเหนือไหล่ → ให้อนุภาคพุ่งออก
-        if hand_center is not None and hand_center[1] < y1:
-            particle["vx"] += random.uniform(-3, 3)  # เพิ่มแรงกระจาย
-            particle["vy"] -= random.uniform(5, 10)
-
-        # อัปเดตตำแหน่ง
         particle["x"] += particle["vx"]
         particle["y"] += particle["vy"]
-
         particle["vx"] *= 0.95
         particle["vy"] *= 0.95
+
+        # ✅ บันทึกเส้นทางของอนุภาค
+        trail = particle_trails.get(id(particle), [])
+        trail.append((particle["x"], particle["y"]))
+        if len(trail) > 10:  # จำกัดความยาวของหางอนุภาค
+            trail.pop(0)
+        particle_trails[id(particle)] = trail
+
 
 ####### Glitch Effects ########
 def extract_body_pixels(frame):

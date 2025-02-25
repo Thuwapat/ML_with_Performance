@@ -63,8 +63,8 @@ def main():
         #shoulder_speed = calculate_shoulder_speed(left_shoulder_x, right_shoulder_x, current_time)
         #frame = create_interstellar_black_hole(frame, shoulder_speed)
         if active_effect == "gravity_swirl":
-            update_gravity_swirl_particles(left_hand, right_hand, hand_center, hand_open, handful, elapsed_time)
-            update_body_energy_particles(body_box, hand_center, hand_open, elapsed_time)
+            update_gravity_swirl_particles(body_box, elapsed_time)
+            update_body_energy_particles(body_box, elapsed_time)
         elif active_effect == "disperson":
              frame = update_dispersion(frame, body_box, body_keypoints)
         elif active_effect == "rain":
