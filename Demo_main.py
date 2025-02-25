@@ -9,7 +9,7 @@ from Projector_Connect import *
 
 def main():
     # Initialize webcam
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set camera width
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set camera height
 
@@ -64,9 +64,11 @@ def main():
         #frame = create_interstellar_black_hole(frame, shoulder_speed)
         if active_effect == "gravity_swirl":
             update_gravity_swirl_particles(body_box, elapsed_time)
+        elif active_effect == "gravity/body":
+            update_gravity_swirl_particles(body_box, elapsed_time)
             update_body_energy_particles(body_box, elapsed_time)
         elif active_effect == "disperson":
-             frame = update_dispersion(frame, body_box, body_keypoints)
+            frame = update_dispersion(frame, body_box, body_keypoints)
         elif active_effect == "rain":
             rain_enabled = not rain_enabled
 
@@ -87,10 +89,22 @@ def main():
             active_effect = "gravity_swirl"
         elif key == ord("3"):
             clear_all_particles()
+            active_effect = "gravity/body"  
+        elif key == ord("4"):
+            clear_all_particles()
+            #active_effect = "gravity/body"    
+        elif key == ord("5"):
+            clear_all_particles()
             active_effect = "rain"
             
     cap.release()
     cv2.destroyAllWindows()
     
 if __name__ == "__main__":
+
+
+
+
+
+
     main()

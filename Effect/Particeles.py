@@ -47,7 +47,7 @@ def create_particles_at_hand(hand_positions):
                 "vx": random.uniform(-5, 5),  # เพิ่มความเร็วของอนุภาค
                 "vy": random.uniform(-5, 5),
                 "opacity": 255,
-                "size": random.randint(1, 5),  # ลดขนาดของอนุภาคให้เล็กลงแบบสุ่ม
+                "size": random.randint(1, 3),  # ลดขนาดของอนุภาคให้เล็กลงแบบสุ่ม
             }
             particles.append(new_particle)
             particle_trails[id(new_particle)] = []  # เริ่มเก็บข้อมูลเส้นทางของอนุภาค
@@ -75,7 +75,7 @@ def update_gravity_swirl_particles(body_box, elapsed_time):
             "vx": random.uniform(-5, 5),
             "vy": random.uniform(-5, 5),
             "opacity": 255,
-            "size": random.randint(5, 10),
+            "size": random.randint(1, 3),
         }
         particles.append(new_particle)
         particle_trails[id(new_particle)] = []  # ✅ เริ่มเก็บเส้นทางของอนุภาค
@@ -129,7 +129,7 @@ def update_body_energy_particles(body_box, elapsed_time):
             "vx": random.uniform(-3, 3),
             "vy": random.uniform(-3, 3),
             "opacity": 255,
-            "size": random.randint(5, 10),
+            "size": random.randint(3, 5),
         }
         particles.append(new_particle)
         particle_trails[id(new_particle)] = []  # ✅ เริ่มเก็บเส้นทางของอนุภาค
