@@ -20,6 +20,7 @@ def main():
     active_effect = "none"
     rain_enabled = False
     video_enabled = False
+    effect_has_trail = False
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -61,12 +62,12 @@ def main():
         for x1, y1, x2, y2 in umbrellas:
            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)  # กล่องสีน้ำเงิน
 
-        #shoulder_speed = calculate_shoulder_speed(left_shoulder_x, right_shoulder_x, current_time)
-        #frame = create_interstellar_black_hole(frame, shoulder_speed)
         if active_effect == "gravity_swirl":
-            update_gravity_swirl_particles(body_box, elapsed_time)
+            effect_has_trail = False  # ไม่มีหางอนุภาค
+            update_gravity_swirl_particles(body_box, elapsed_time, effect_has_trail)
         elif active_effect == "gravity/body":
-            update_gravity_swirl_particles(body_box, elapsed_time)
+            effect_has_trail = True  # มีหางอนุภาค
+            update_gravity_swirl_particles(body_box, elapsed_time, effect_has_trail)
             update_body_energy_particles(body_box, elapsed_time)
         elif active_effect == "disperson":
             frame = update_dispersion(frame, body_box, body_keypoints)
@@ -96,6 +97,9 @@ def main():
         elif key == ord("5"):
             clear_all_particles()
             active_effect = "rain"
+        elif key == ord("0"):
+            clear_all_particles()
+            active_effect = "none"
             
     cap.release()
     cv2.destroyAllWindows()

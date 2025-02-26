@@ -52,23 +52,22 @@ def create_particles_at_hand(hand_positions):
             particles.append(new_particle)
             particle_trails[id(new_particle)] = []  # เริ่มเก็บข้อมูลเส้นทางของอนุภาค
 
-def update_gravity_swirl_particles(body_box, elapsed_time):
+def update_gravity_swirl_particles(body_box, elapsed_time, effect_has_trail):
     global particles, particle_trails
 
     if body_box is None:
         for particle in particles:
-            particle["opacity"] -= 5  # ทำให้อนุภาคจางหายไปหากไม่มีร่างกายในเฟรม
+            particle["opacity"] -= 5
             if particle["opacity"] <= 0:
                 particle_trails.pop(id(particle), None)
                 particles.remove(particle)
         return
 
-    # ใช้ body_box เป็นจุดกำเนิดของอนุภาค
     x1, y1, x2, y2 = body_box
     body_center_x = (x1 + x2) // 2
     body_center_y = (y1 + y2) // 2
 
-    for _ in range(10):  # สุ่มสร้างอนุภาครอบๆ body_box
+    for _ in range(10):
         new_particle = {
             "x": body_center_x + random.randint(-50, 50),
             "y": body_center_y + random.randint(-50, 50),
@@ -78,20 +77,22 @@ def update_gravity_swirl_particles(body_box, elapsed_time):
             "size": random.randint(1, 3),
         }
         particles.append(new_particle)
-        particle_trails[id(new_particle)] = []  # ✅ เริ่มเก็บเส้นทางของอนุภาค
+        
+        if effect_has_trail:
+            particle_trails[id(new_particle)] = []  # ✅ บันทึกหางเฉพาะถ้า effect มีหาง
 
     for particle in particles:
-        particle["x"] += particle["vx"]
-        particle["y"] += particle["vy"]
-        particle["vx"] *= 0.97
-        particle["vy"] *= 0.97
+        particle["x"] += particle["vx"] * elapsed_time
+        particle["y"] += particle["vy"] * elapsed_time
+        particle["vx"] *= (0.97 ** elapsed_time)
+        particle["vy"] *= (0.97 ** elapsed_time)
 
-        # ✅ บันทึกเส้นทางของอนุภาค
-        trail = particle_trails.get(id(particle), [])
-        trail.append((particle["x"], particle["y"]))
-        if len(trail) > 10:  # จำกัดความยาวของหางอนุภาค
-            trail.pop(0)
-        particle_trails[id(particle)] = trail
+        if effect_has_trail:  # ✅ ถ้าเอฟเฟกต์มีหาง
+            trail = particle_trails.get(id(particle), [])
+            trail.append((particle["x"], particle["y"]))
+            if len(trail) > 10:
+                trail.pop(0)
+            particle_trails[id(particle)] = trail
 
 
 def draw_gravity_swirl_particles(frame):
