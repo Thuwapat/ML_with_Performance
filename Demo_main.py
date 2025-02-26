@@ -34,6 +34,7 @@ def main():
 
         hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
         left_hand, right_hand, handful, hand_center, hand_open, hands_together = detect_hand(frame)
+        hands_up = is_hands_up(left_shoulder, right_shoulder, left_wrist, right_wrist)
         body_box = detect_body(frame)
         umbrellas = detect_umbrella(frame)
 
@@ -73,7 +74,9 @@ def main():
             frame = update_dispersion(frame, body_box, body_keypoints)
         elif active_effect == "rain":
             rain_enabled = not rain_enabled
-            
+        elif active_effect == "black_hole":
+            frame = create_interstellar_black_hole(frame, hands_up)
+
         video_enabled = update_projector(frame, rain_enabled, video_enabled)
 
         # Show frame
@@ -97,6 +100,8 @@ def main():
         elif key == ord("5"):
             clear_all_particles()
             active_effect = "rain"
+        elif key == ord("6"):
+            active_effect = "black_hole"
         elif key == ord("0"):
             clear_all_particles()
             active_effect = "none"

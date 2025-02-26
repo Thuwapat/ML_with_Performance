@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import numpy as np
 import cv2
 import torch
-
+import time
 # ตรวจสอบว่ามี GPU หรือไม่
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -135,3 +135,8 @@ def detect_umbrella(frame):
                     umbrella_boxes.append(box)
     
     return umbrella_boxes
+
+def is_hands_up(left_shoulder, right_shoulder, left_wrist, right_wrist):
+    if not left_shoulder or not right_shoulder or not left_wrist or not right_wrist:
+        return False
+    return left_wrist[1] < left_shoulder[1] and right_wrist[1] < right_shoulder[1]
