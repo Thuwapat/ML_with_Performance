@@ -18,7 +18,8 @@ def main():
     prev_time = time.time()
 
     active_effect = "none"
-    rain_enabled = False 
+    rain_enabled = False
+    video_enabled = False
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -71,8 +72,8 @@ def main():
             frame = update_dispersion(frame, body_box, body_keypoints)
         elif active_effect == "rain":
             rain_enabled = not rain_enabled
-
-        update_projector(frame, rain_enabled)
+            
+        video_enabled = update_projector(frame, rain_enabled, video_enabled)
 
         # Show frame
         cv2.imshow("Demo", frame)
@@ -90,9 +91,8 @@ def main():
         elif key == ord("3"):
             clear_all_particles()
             active_effect = "gravity/body"  
-        elif key == ord("4"):
-            clear_all_particles()
-            #active_effect = "gravity/body"    
+        elif key == ord("4"): 
+            video_enabled = not video_enabled
         elif key == ord("5"):
             clear_all_particles()
             active_effect = "rain"
