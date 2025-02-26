@@ -33,7 +33,7 @@ def main():
         hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
         left_hand, right_hand, handful, hand_center, hand_open, hands_together = detect_hand(frame)
         body_box = detect_body(frame)
-        #umbrellas = detect_umbrella(frame)
+        umbrellas = detect_umbrella(frame)
 
         # Smooth frame rate control
         current_time = time.time()
@@ -57,8 +57,8 @@ def main():
             for x, y in keypoint:
                 cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
         # Draw Umbella
-        #for x1, y1, x2, y2 in umbrellas:
-        #    cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)  # กล่องสีน้ำเงิน
+        for x1, y1, x2, y2 in umbrellas:
+           cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)  # กล่องสีน้ำเงิน
 
         #shoulder_speed = calculate_shoulder_speed(left_shoulder_x, right_shoulder_x, current_time)
         #frame = create_interstellar_black_hole(frame, shoulder_speed)
@@ -101,10 +101,4 @@ def main():
     cv2.destroyAllWindows()
     
 if __name__ == "__main__":
-
-
-
-
-
-
     main()
