@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import random 
 # Screen size
 projector_width = 1920  
 projector_height = 1080  
@@ -44,7 +44,7 @@ def play_video_on_projector():
             toggle_fullscreen()
     return True  
 
-def update_projector(frame, rain_enabled, video_enabled, active_effect):
+def update_projector(frame, rain_enabled, video_enabled, active_effect, lightning_effect=False):
     if video_enabled:
         video_enabled = play_video_on_projector()
         return video_enabled
@@ -57,7 +57,12 @@ def update_projector(frame, rain_enabled, video_enabled, active_effect):
 
     if rain_enabled:
         projector_frame = add_rain_effect(projector_frame)
-    
+        
+    if lightning_effect: 
+        flash_intensity = random.randint(80, 150) 
+        lightning_frame = np.full_like(projector_frame, flash_intensity)
+        projector_frame = cv2.addWeighted(projector_frame, 0.8, lightning_frame, 0.5, 0)
+
     if active_effect == "black_hole":
         from Effect.Interstellar_blackHole import create_interstellar_black_hole
         projector_frame = create_interstellar_black_hole(projector_frame, hands_up=True)

@@ -21,7 +21,9 @@ def main():
     rain_enabled = False
     video_enabled = False
     effect_has_trail = False
-    
+    lightning_effect = False
+    lightning_timer = 0
+
     # ตัวแปรสำหรับป้องกันการกดซ้ำ
     last_key_time = 0
     key_cooldown = 0.2  # 200 มิลลิวินาที
@@ -90,9 +92,15 @@ def main():
         elif active_effect == "rain":
             if len(umbrellas) > 0:
                 rain_enabled = True
+                if lightning_timer <= 0:
+                    lightning_effect = True
+                    lightning_timer = random.randint(30, 60)
+                else:
+                    lightning_effect = False
+                    lightning_timer -= 1  # ✅ ลดค่าตัวจับเวลา
             else:
                 rain_enabled = False
-
+                lightning_effect = False
             # สร้าง Frame สำหรับโปรเจคเตอร์
             projector_frame = np.zeros((projector_height, projector_width, 3), dtype=np.uint8)
 
@@ -103,7 +111,7 @@ def main():
             cv2.imshow("Projector", projector_frame)
 
 
-        video_enabled = update_projector(frame, rain_enabled, video_enabled, active_effect)
+        video_enabled = update_projector(frame, rain_enabled, video_enabled, active_effect, lightning_effect)
 
 
         # Show frame
