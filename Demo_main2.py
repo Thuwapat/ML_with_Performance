@@ -87,6 +87,11 @@ def main():
             frame = update_dispersion(frame, body_box, body_keypoints)
         elif active_effect == "black_hole":
             frame = create_interstellar_black_hole(frame, hands_up)
+        elif active_effect == "rain":
+            if len(umbrellas) > 0:
+                rain_enabled = True
+            else:
+                rain_enabled = False
 
             # สร้าง Frame สำหรับโปรเจคเตอร์
             projector_frame = np.zeros((projector_height, projector_width, 3), dtype=np.uint8)
@@ -138,10 +143,6 @@ def main():
             clear_all_particles()
             active_effect = pending_effect_change
             
-            # จัดการกรณีพิเศษสำหรับ rain
-            if active_effect == "rain":
-                rain_enabled = not rain_enabled
-                
             pending_effect_change = None
             
     cap.release()

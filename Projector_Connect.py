@@ -53,11 +53,10 @@ def update_projector(frame, rain_enabled, video_enabled, active_effect):
 
     # รวมเอฟเฟกต์ต่างๆ เข้าไปในหน้าจอโปรเจคเตอร์
     from Effect.Particeles import draw_dispersion, draw_gravity_swirl_particles
-    from Effect.Rain import initialize_rain, control_rain
+    from Effect.Rain import add_rain_effect
 
     if rain_enabled:
-        initialize_rain()
-        control_rain(projector_frame)
+        projector_frame = add_rain_effect(projector_frame)
     
     if active_effect == "black_hole":
         from Effect.Interstellar_blackHole import create_interstellar_black_hole
