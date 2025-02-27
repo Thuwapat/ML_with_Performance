@@ -184,18 +184,26 @@ def update_body_energy_particles(body_box, elapsed_time, max_particles=500):
 
 
 ####### Glitch Effects ########
-def extract_body_pixels(frame):
+def extract_body_pixels(frame, body_box):
     global glitch_particles, body_pixels, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
-    body_mask = get_body_mask(frame)  # ดึง mask ของร่างกาย
+    if body_box is None:
+        return
+
+    # ✅ ดึง Mask ของร่างกาย
+    body_mask = get_body_mask(frame)
 
     if body_mask is None:
         return
 
-    if body_mask.shape[:2] != frame.shape[:2]:  # ป้องกันปัญหาขนาดไม่ตรงกัน
-        body_mask = cv2.resize(body_mask, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST)
+    x1, y1, x2, y2 = body_box  # ✅ ใช้ Body_box เป็นขอบเขต
 
-    body_pixels = cv2.bitwise_and(frame, frame, mask=body_mask)# ใช้ mask แยกร่างกายออกมา
+    # ✅ ตัดส่วนที่อยู่นอก Body_box ออกจาก Mask
+    cropped_mask = np.zeros_like(body_mask)
+    cropped_mask[y1:y2, x1:x2] = body_mask[y1:y2, x1:x2]  # ✅ ใช้ Mask เฉพาะภายใน Body_box
+
+    # ✅ แยกพิกเซลร่างกายที่อยู่ภายใน Body_box เท่านั้น
+    body_pixels = cv2.bitwise_and(frame, frame, mask=cropped_mask)
 
     glitch_particles = []
     glitch_active = True
@@ -203,17 +211,18 @@ def extract_body_pixels(frame):
     dispersion_started = False
     effect_reset_time = time.time() + cooldown_time  
 
-    # สร้างอนุภาคจาก pixel ที่มี mask เท่านั้น
-    for i in range(0, body_pixels.shape[0], 5):
-        for j in range(0, body_pixels.shape[1], 5):
-            if body_mask[i, j] > 0:  # ตรวจว่าเป็นส่วนของร่างกาย
-                color = (255, 255, 255)  # อนุภาคเป็นสีขาว
+    # ✅ สร้างอนุภาคจาก Pixel ที่อยู่ใน Mask ภายใน Body_box เท่านั้น
+    for i in range(y1, y2, 5):  # ✅ ลูปเฉพาะภายใน Body_box
+        for j in range(x1, x2, 5):
+            if cropped_mask[i, j] > 0:  # ✅ ตรวจว่าเป็นส่วนของร่างกาย
+                color = (255, 255, 255)  # ✅ อนุภาคเป็นสีขาว
                 glitch_particles.append({
                     "x": j, "y": i,
                     "vx": 0, "vy": 0,
                     "opacity": 255,
                     "color": color
                 })
+
 
 def dispersion_effect(body_box, projector_height):
     global glitch_particles, particle_start_time
@@ -287,7 +296,7 @@ def update_dispersion(frame, body_box, body_keypoints):
     global glitch_particles, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
 
     if body_keypoints and is_arms_raised(*body_keypoints):  # 🔥 ใช้เงื่อนไขกางแขนแทน
-        extract_body_pixels(frame)  # เริ่มเอฟเฟกต์
+        extract_body_pixels(frame, body_box)  # เริ่มเอฟเฟกต์
         glitch_start_time = time.time()
         effect_reset_time = glitch_start_time + cooldown_time  
 
