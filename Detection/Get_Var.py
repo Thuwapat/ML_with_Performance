@@ -9,7 +9,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # โหลดโมเดล YOLO เพียงครั้งเดียว
 model_post = YOLO("./Detection/yolo11n-pose.pt").to(DEVICE)
 model_hand = YOLO("./Detection/hand_detection.pt").to(DEVICE)
-model_object = YOLO("./Detection/yolo11x.pt").to(DEVICE)
+model_object = YOLO("./Detection/yolo11n.pt").to(DEVICE)
 model_seg = YOLO("./Detection/yolo11x-seg.pt").to(DEVICE)
 
 def get_post_keypoint(frame):
