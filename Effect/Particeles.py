@@ -28,6 +28,7 @@ dispersion_started = False
 cooldown_time = 180  # Cooldown time before effect resets
 effect_reset_time = None
 particle_start_time = {}
+moving_center_y = None  # ✅ จุดศูนย์กลางที่เคลื่อนที่ขึ้น
 
 # Initialize particles in random positions
 def initialize_particles():
@@ -180,9 +181,6 @@ def update_body_energy_particles(body_box, elapsed_time, max_particles=500):
     particles = new_particles  # ✅ อัปเดตเฉพาะอนุภาคที่ยังอยู่ในจอ
 
 
-
-
-
 ####### Glitch Effects ########
 def extract_body_pixels(frame, body_box):
     global glitch_particles, body_pixels, glitch_active, glitch_start_time, dispersion_started, effect_reset_time
@@ -225,9 +223,7 @@ def extract_body_pixels(frame, body_box):
 
 
 def dispersion_effect(body_box, projector_height):
-    global glitch_particles, particle_start_time
-
-    current_time = time.time()  # ✅ เวลาปัจจุบัน
+    global glitch_particles, particle_start_time, moving_center_y
 
     if body_box is None:
         return  # ✅ ถ้าไม่มี Body_box ให้รอ ไม่ต้องทำอะไร
@@ -236,39 +232,28 @@ def dispersion_effect(body_box, projector_height):
     x1, y1, x2, y2 = body_box
     body_center_x = (x1 + x2) // 2
     body_center_y = (y1 + y2) // 2
-    target_y = projector_height * 0.4  # ✅ เป้าหมายการลอยขึ้น = 60% ของจอ
 
-    gravity_strength = 5  # ✅ ค่าความแรงที่ดึงอนุภาคเข้าสู่ Body_box
-    upward_force = 1.5  # ✅ ค่าความแรงที่ทำให้อนุภาคลอยขึ้น
-    explosion_delay = 5  # ✅ ระยะเวลารอก่อนระเบิด (วินาที)
+    # ✅ กำหนดให้ moving_center_y เป็นตำแหน่งของ Body_center และค่อยๆ ลอยขึ้น
+    if moving_center_y is None or moving_center_y > body_center_y:
+        moving_center_y = body_center_y
+
+    target_y = projector_height * 0.2  # ✅ เป้าหมาย = 80% ของจอ (ยิ่งค่า y ต่ำ ยิ่งสูง)
+
+    gravity_strength = 5  # ✅ ค่าความแรงที่ดึงอนุภาคเข้าสู่ Body_center
+    moving_speed = 2  # ✅ ความเร็วที่ Center ลอยขึ้น
+    explosion_triggered = False  # ✅ ตรวจสอบว่าอนุภาคระเบิดแล้วหรือยัง
 
     new_particles = []
     for particle in glitch_particles:
-        particle_id = id(particle)
-
-        # ✅ บันทึกเวลาที่อนุภาคถูกสร้าง
-        if particle_id not in particle_start_time:
-            particle_start_time[particle_id] = current_time
-
         dx = body_center_x - particle["x"]
-        dy = body_center_y - particle["y"]
+        dy = moving_center_y - particle["y"]  # ✅ ใช้ moving_center_y แทน Body_box
+
         distance = max(np.sqrt(dx**2 + dy**2), 1)
 
-        # ✅ ขั้นตอนที่ 1: ดูดอนุภาคเข้าสู่ศูนย์กลาง Body_box
+        # ✅ ดูดอนุภาคเข้าสู่ศูนย์กลางที่กำลังเคลื่อนที่ขึ้น
         if distance > 10:
             particle["vx"] += (dx / distance) * gravity_strength
             particle["vy"] += (dy / distance) * gravity_strength
-        else:
-            # ✅ ขั้นตอนที่ 2: เมื่ออนุภาคถึงศูนย์กลาง ให้ลอยขึ้น
-            if particle["y"] > target_y:
-                particle["vy"] -= upward_force
-
-        # ✅ ขั้นตอนที่ 3: ถ้าผ่านไป 5 วินาที → ระเบิดออก
-        if current_time - particle_start_time[particle_id] > explosion_delay:
-            angle = random.uniform(0, 2 * np.pi)
-            speed = random.uniform(3, 8)
-            particle["vx"] = np.cos(angle) * speed
-            particle["vy"] = np.sin(angle) * speed
 
         # ✅ ค่อยๆ ลดค่า opacity ให้อนุภาคจางหายไป
         particle["opacity"] = max(0, particle["opacity"] - 3)
@@ -280,11 +265,23 @@ def dispersion_effect(body_box, projector_height):
         # ✅ เก็บเฉพาะอนุภาคที่ยังมองเห็นอยู่
         if particle["opacity"] > 0:
             new_particles.append(particle)
-        else:
-            # ✅ ลบเวลาที่บันทึกไว้ ถ้าอนุภาคหายไปแล้ว
-            del particle_start_time[particle_id]
+
+    # ✅ ค่อยๆ ขยับจุดศูนย์กลางขึ้นไป
+    moving_center_y -= moving_speed
+
+    # ✅ เมื่อจุดศูนย์กลางลอยถึง 80% ของจอ → ระเบิดอนุภาคออก
+    if moving_center_y <= target_y:
+        explosion_triggered = True
+
+    if explosion_triggered:
+        for particle in new_particles:
+            angle = random.uniform(0, 2 * np.pi)
+            speed = random.uniform(3, 8)
+            particle["vx"] = np.cos(angle) * speed
+            particle["vy"] = np.sin(angle) * speed
 
     glitch_particles[:] = new_particles  # ✅ อัปเดตเฉพาะอนุภาคที่ยังเหลืออยู่
+
 
 
 
