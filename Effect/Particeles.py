@@ -94,14 +94,14 @@ def update_gravity_swirl_particles(body_box, elapsed_time, effect_has_trail):
                 trail.pop(0)
             particle_trails[id(particle)] = trail
 
-
 def draw_gravity_swirl_particles(frame):
     global previous_particle_frame
 
     for particle in particles:
         if particle["opacity"] > 0:
             px, py = scale_particle_position(particle["x"], particle["y"])
-            color = (255, 255, 255)  # ✅ สีขาว
+            glow = particle["glow_intensity"]
+            color = (glow, glow, glow)  # ✅ ทำให้อนุภาคมีแสงเรืองรอง
             cv2.circle(frame, (px, py), particle["size"], color, -1)
 
         # ✅ วาดเส้นทางของอนุภาค (หาง)
@@ -109,10 +109,9 @@ def draw_gravity_swirl_particles(frame):
         for i in range(1, len(trail)):
             prev_px, prev_py = scale_particle_position(trail[i-1][0], trail[i-1][1])
             curr_px, curr_py = scale_particle_position(trail[i][0], trail[i][1])
-            alpha = int(255 * (i / len(trail)))  # ✅ ทำให้หางค่อยๆ จางลง
-            cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), (255, 255, 255, alpha), 2, lineType=cv2.LINE_AA)
-
-
+            alpha = int(particle["glow_intensity"] * (i / len(trail)) ** 1.5)  # ✅ ทำให้หางค่อยๆ จางลง
+            color = (alpha, alpha, alpha)
+            cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), color, 2, lineType=cv2.LINE_AA)
 
 def update_body_energy_particles(body_box, elapsed_time):
     global particles, particle_trails
@@ -132,20 +131,24 @@ def update_body_energy_particles(body_box, elapsed_time):
             "vy": random.uniform(-3, 3),
             "opacity": 255,
             "size": random.randint(3, 5),
-            "trail": [],  
+            "trail": [],
+            "tail_length": random.randint(15, 30),
+            "glow_intensity": random.randint(100, 255)  # ✅ เพิ่มแสงเรืองรองให้ทุกอนุภาค
         }
-        new_particle["tail_length"] = random.randint(15, 30)  # ✅ กำหนดค่า tail_length
         particles.append(new_particle)
         particle_trails[id(new_particle)] = []
 
     for particle in particles:
-        particle.setdefault("tail_length", random.randint(15, 30))  # ✅ ป้องกัน KeyError
+        # ✅ ป้องกัน KeyError โดยกำหนดค่าเริ่มต้น
+        particle.setdefault("tail_length", random.randint(15, 30))
+        particle.setdefault("glow_intensity", random.randint(100, 255))
+
         dx = body_center_x - particle["x"]
         dy = body_center_y - particle["y"]
         distance = max(np.sqrt(dx**2 + dy**2), 1)
 
         force = 8 / distance
-        dx, dy = -dy, dx  # ✅ หมุนอนุภาคให้มีวงโคจร
+        dx, dy = -dy, dx  
         particle["vx"] += dx * force * elapsed_time
         particle["vy"] += dy * force * elapsed_time
 
@@ -157,9 +160,11 @@ def update_body_energy_particles(body_box, elapsed_time):
         # ✅ บันทึกเส้นทางของอนุภาค
         trail = particle_trails.get(id(particle), [])
         trail.append((particle["x"], particle["y"]))
-        if len(trail) > particle["tail_length"]:  # ✅ จำกัดความยาวหาง
+        if len(trail) > particle["tail_length"]:
             trail.pop(0)
         particle_trails[id(particle)] = trail
+
+
 
 ####### Glitch Effects ########
 def extract_body_pixels(frame):
