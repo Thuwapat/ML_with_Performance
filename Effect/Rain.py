@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import random
-from Detection.Get_Var import detect_umbrella
 
 def add_rain_effect(frame):
     
