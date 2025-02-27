@@ -122,19 +122,20 @@ def get_body_mask(frame):
     return None
 
 def detect_umbrella(frame):
-    """ตรวจจับร่มในเฟรมและคืนค่ากล่องรอบวัตถุ"""
-    results = model_object.predict(frame, device=DEVICE)
     
+    results = model_object.predict(frame)
+
     umbrella_boxes = []
     for result in results:
         if result.boxes is not None and len(result.boxes) > 0:
             boxes = result.boxes.xyxy.cpu().numpy()
-            class_ids = result.boxes.cls.cpu().numpy()
+            class_ids = result.boxes.cls.cpu().numpy()  
             for i, box in enumerate(boxes):
-                if int(class_ids[i]) == 28:  # หมายเลขคลาสของร่ม
+                if model_object.names[int(class_ids[i])] == "umbrella":
                     umbrella_boxes.append(box)
-    
+
     return umbrella_boxes
+    
 
 def is_hands_up(left_shoulder, right_shoulder, left_wrist, right_wrist):
     if not left_shoulder or not right_shoulder or not left_wrist or not right_wrist:
