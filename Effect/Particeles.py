@@ -75,24 +75,27 @@ def update_gravity_swirl_particles(body_box, elapsed_time, effect_has_trail):
             "vy": random.uniform(-5, 5),
             "opacity": 255,
             "size": random.randint(1, 3),
+            "glow_intensity": random.randint(100, 255)  # ✅ เพิ่มแสงเรืองรองให้ทุกอนุภาค
         }
         particles.append(new_particle)
         
         if effect_has_trail:
-            particle_trails[id(new_particle)] = []  # ✅ บันทึกหางเฉพาะถ้า effect มีหาง
+            particle_trails[id(new_particle)] = []
 
     for particle in particles:
+        particle.setdefault("glow_intensity", random.randint(100, 255))  # ✅ ป้องกัน KeyError
         particle["x"] += particle["vx"] * elapsed_time
         particle["y"] += particle["vy"] * elapsed_time
         particle["vx"] *= (0.97 ** elapsed_time)
         particle["vy"] *= (0.97 ** elapsed_time)
 
-        if effect_has_trail:  # ✅ ถ้าเอฟเฟกต์มีหาง
+        if effect_has_trail:
             trail = particle_trails.get(id(particle), [])
             trail.append((particle["x"], particle["y"]))
             if len(trail) > 10:
                 trail.pop(0)
             particle_trails[id(particle)] = trail
+
 
 def draw_gravity_swirl_particles(frame):
     global previous_particle_frame
@@ -113,7 +116,7 @@ def draw_gravity_swirl_particles(frame):
             color = (alpha, alpha, alpha)
             cv2.line(frame, (prev_px, prev_py), (curr_px, curr_py), color, 2, lineType=cv2.LINE_AA)
 
-def update_body_energy_particles(body_box, elapsed_time):
+def update_body_energy_particles(body_box, elapsed_time, max_particles=500):
     global particles, particle_trails
 
     if body_box is None:
@@ -123,46 +126,59 @@ def update_body_energy_particles(body_box, elapsed_time):
     body_center_x = (x1 + x2) // 2
     body_center_y = (y1 + y2) // 2
 
-    for _ in range(10):  # สร้างอนุภาคพลังงานรอบร่างกาย
+    # ✅ จำกัดจำนวนอนุภาคสูงสุด
+    if len(particles) > max_particles:
+        particles[:] = particles[-max_particles:]
+
+    for _ in range(5):  # ✅ ลดจำนวนอนุภาคที่สร้างต่อเฟรม
         new_particle = {
             "x": random.randint(x1, x2),
             "y": random.randint(y1, y2),
-            "vx": random.uniform(-3, 3),
-            "vy": random.uniform(-3, 3),
+            "vx": random.uniform(-2, 2),
+            "vy": random.uniform(-2, 2),
             "opacity": 255,
             "size": random.randint(3, 5),
             "trail": [],
-            "tail_length": random.randint(15, 30),
-            "glow_intensity": random.randint(100, 255)  # ✅ เพิ่มแสงเรืองรองให้ทุกอนุภาค
+            "glow_intensity": random.randint(100, 255)
         }
+        new_particle["tail_length"] = random.randint(10, 20)  # ✅ กำหนดค่า tail_length
         particles.append(new_particle)
         particle_trails[id(new_particle)] = []
 
+    # ✅ อัปเดตตำแหน่งของอนุภาค พร้อมลบอนุภาคที่ออกจากจอ
+    new_particles = []
     for particle in particles:
         # ✅ ป้องกัน KeyError โดยกำหนดค่าเริ่มต้น
-        particle.setdefault("tail_length", random.randint(15, 30))
-        particle.setdefault("glow_intensity", random.randint(100, 255))
+        particle.setdefault("tail_length", random.randint(10, 20))
 
         dx = body_center_x - particle["x"]
         dy = body_center_y - particle["y"]
         distance = max(np.sqrt(dx**2 + dy**2), 1)
 
-        force = 8 / distance
+        force = 5 / distance  # ✅ ลดแรงโน้มถ่วง
         dx, dy = -dy, dx  
         particle["vx"] += dx * force * elapsed_time
         particle["vy"] += dy * force * elapsed_time
 
         particle["x"] += particle["vx"]
         particle["y"] += particle["vy"]
-        particle["vx"] *= 0.95
-        particle["vy"] *= 0.95
+        particle["vx"] *= 0.92
+        particle["vy"] *= 0.92
 
-        # ✅ บันทึกเส้นทางของอนุภาค
+        # ✅ ลบอนุภาคที่ออกจากจอ
+        if 0 <= particle["x"] <= projector_width and 0 <= particle["y"] <= projector_height:
+            new_particles.append(particle)
+
+        # ✅ จำกัดความยาวของหาง
         trail = particle_trails.get(id(particle), [])
         trail.append((particle["x"], particle["y"]))
         if len(trail) > particle["tail_length"]:
             trail.pop(0)
         particle_trails[id(particle)] = trail
+
+    particles = new_particles  # ✅ อัปเดตเฉพาะอนุภาคที่ยังอยู่ในจอ
+
+
 
 
 
