@@ -27,6 +27,7 @@ glitch_start_time = None
 dispersion_started = False
 cooldown_time = 180  # Cooldown time before effect resets
 effect_reset_time = None
+particle_start_time = {}
 
 # Initialize particles in random positions
 def initialize_particles():
@@ -214,33 +215,69 @@ def extract_body_pixels(frame):
                     "color": color
                 })
 
-def dispersion_effect(body_box):
-    global glitch_particles
-    if body_box is None:
-        return
+def dispersion_effect(body_box, projector_height):
+    global glitch_particles, particle_start_time
 
-    # หา Center ของร่างกาย
+    current_time = time.time()  # ✅ เวลาปัจจุบัน
+
+    if body_box is None:
+        return  # ✅ ถ้าไม่มี Body_box ให้รอ ไม่ต้องทำอะไร
+
+    # ✅ หา Center ของร่างกาย
     x1, y1, x2, y2 = body_box
     body_center_x = (x1 + x2) // 2
     body_center_y = (y1 + y2) // 2
+    target_y = projector_height * 0.4  # ✅ เป้าหมายการลอยขึ้น = 60% ของจอ
 
+    gravity_strength = 5  # ✅ ค่าความแรงที่ดึงอนุภาคเข้าสู่ Body_box
+    upward_force = 1.5  # ✅ ค่าความแรงที่ทำให้อนุภาคลอยขึ้น
+    explosion_delay = 5  # ✅ ระยะเวลารอก่อนระเบิด (วินาที)
+
+    new_particles = []
     for particle in glitch_particles:
-        # คำนวณทิศทางให้อนุภาคเคลื่อนออกจากร่างกาย
-        dx = particle["x"] - body_center_x
-        dy = particle["y"] - body_center_y
+        particle_id = id(particle)
+
+        # ✅ บันทึกเวลาที่อนุภาคถูกสร้าง
+        if particle_id not in particle_start_time:
+            particle_start_time[particle_id] = current_time
+
+        dx = body_center_x - particle["x"]
+        dy = body_center_y - particle["y"]
         distance = max(np.sqrt(dx**2 + dy**2), 1)
 
-        # ปรับให้อนุภาคกระจายออกช้าลง
-        speed = 1 + (distance / 50)  # ลดความเร็วของอนุภาค
-        particle["vx"] = (dx / distance) * speed
-        particle["vy"] = (dy / distance) * speed
+        # ✅ ขั้นตอนที่ 1: ดูดอนุภาคเข้าสู่ศูนย์กลาง Body_box
+        if distance > 10:
+            particle["vx"] += (dx / distance) * gravity_strength
+            particle["vy"] += (dy / distance) * gravity_strength
+        else:
+            # ✅ ขั้นตอนที่ 2: เมื่ออนุภาคถึงศูนย์กลาง ให้ลอยขึ้น
+            if particle["y"] > target_y:
+                particle["vy"] -= upward_force
 
-        # อัปเดตตำแหน่งอนุภาค
+        # ✅ ขั้นตอนที่ 3: ถ้าผ่านไป 5 วินาที → ระเบิดออก
+        if current_time - particle_start_time[particle_id] > explosion_delay:
+            angle = random.uniform(0, 2 * np.pi)
+            speed = random.uniform(3, 8)
+            particle["vx"] = np.cos(angle) * speed
+            particle["vy"] = np.sin(angle) * speed
+
+        # ✅ ค่อยๆ ลดค่า opacity ให้อนุภาคจางหายไป
+        particle["opacity"] = max(0, particle["opacity"] - 3)
+
+        # ✅ อัปเดตตำแหน่งอนุภาค
         particle["x"] += particle["vx"]
         particle["y"] += particle["vy"]
 
-    # ลบอนุภาคที่พ้นขอบจอไปไกล
-    glitch_particles[:] = [p for p in glitch_particles if -100 <= p["x"] <= width + 100 and -100 <= p["y"] <= height + 100]
+        # ✅ เก็บเฉพาะอนุภาคที่ยังมองเห็นอยู่
+        if particle["opacity"] > 0:
+            new_particles.append(particle)
+        else:
+            # ✅ ลบเวลาที่บันทึกไว้ ถ้าอนุภาคหายไปแล้ว
+            del particle_start_time[particle_id]
+
+    glitch_particles[:] = new_particles  # ✅ อัปเดตเฉพาะอนุภาคที่ยังเหลืออยู่
+
+
 
 def get_dispersion_status():
     global dispersion_started
@@ -260,7 +297,7 @@ def update_dispersion(frame, body_box, body_keypoints):
         dispersion_started = True  
 
     if dispersion_started:
-        dispersion_effect(body_box)
+        dispersion_effect(body_box, projector_height)
 
     return frame
 
