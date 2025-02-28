@@ -132,6 +132,11 @@ def main():
             elif key == ord("6"):
                 pending_effect_change = "black_hole"
                 last_key_time = current_time
+            elif key == ord("7"):  
+                video_enabled = True
+                while video_enabled:
+                    video_enabled = play_gif_on_projector()
+                    last_key_time = current_time  
             elif key == ord("0"):
                 pending_effect_change = "none"
                 last_key_time = current_time

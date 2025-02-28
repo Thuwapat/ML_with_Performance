@@ -76,12 +76,12 @@ def draw_black_hole(frame):
 # ฟังก์ชันหลักสร้างหลุมดำที่อนุภาคหมุนรอบตัว พร้อมเอฟเฟกต์สำหรับห้องมืด
 def create_interstellar_black_hole(frame, hands_up):
     global black_hole_x, black_hole_y
-    h, w = frame.shape[:2]
+    from Projector_Connect import projector_width, projector_height  # ✅ นำเข้าขนาดจอ Projector
 
     if black_hole_x is None or black_hole_y is None:
-        black_hole_x = w // 2
-        black_hole_y = h // 2
-    
+        black_hole_x = projector_width // 2  # ✅ ตั้งค่าให้อยู่กลางจอ
+        black_hole_y = projector_height // 2  
+
     update_particles()
     
     if hands_up:
@@ -89,3 +89,4 @@ def create_interstellar_black_hole(frame, hands_up):
     
     draw_black_hole(frame)
     return frame
+
