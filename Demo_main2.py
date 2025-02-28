@@ -80,6 +80,8 @@ def main():
             frame = update_dispersion(frame, body_box, body_keypoints)
         elif active_effect == "black_hole":
             pass
+        elif active_effect == "firework":
+            pass  # ✅ ให้โปรเจคเตอร์จัดการเอฟเฟกต์เอง
         elif active_effect == "rain":
             if len(umbrellas) > 0:
                 rain_enabled = True
@@ -128,9 +130,12 @@ def main():
                 pending_effect_change = "disperson"
                 last_key_time = current_time
             elif key == ord("5"):
-                pending_effect_change = "gravity/body"
+                pending_effect_change = "disperson"
                 last_key_time = current_time
             elif key == ord("6"):
+                pending_effect_change = "gravity/body"
+                last_key_time = current_time
+            elif key == ord("7"):
                 video_enabled = not video_enabled
                 last_key_time = current_time
             elif key == ord("0"):

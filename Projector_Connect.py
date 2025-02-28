@@ -66,7 +66,10 @@ def update_projector(hands_up , rain_enabled, video_enabled, active_effect, ligh
     if active_effect == "black_hole":
         from Effect.Interstellar_blackHole import create_interstellar_black_hole
         projector_frame = create_interstellar_black_hole(projector_frame, hands_up)
-    
+    if active_effect == "firework":
+        from Effect.Firework import firework_effect, draw_firework
+        firework_effect(projector_width, projector_height)  # ✅ อัปเดตตำแหน่งของพลุ
+        draw_firework(projector_frame)  # ✅ วาดพลุบนจอ Projector
     draw_dispersion(projector_frame)  # วาดเอฟเฟกต์กระจายพลังงาน
     draw_gravity_swirl_particles(projector_frame)  # วาดอนุภาคหมุนรอบตัว
     
