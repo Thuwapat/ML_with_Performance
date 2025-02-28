@@ -23,6 +23,9 @@ def main():
     lightning_effect = False
     lightning_timer = 0
 
+    umbrella_last_seen_time = None  # ✅ เก็บเวลาที่พบร่มล่าสุด
+    rain_delay = 3  # ✅ ดีเลย์ 3 วินาทีก่อนปิดฝน
+
     # ตัวแปรสำหรับป้องกันการกดซ้ำ
     last_key_time = 0
     key_cooldown = 0.2  # 200 มิลลิวินาที
@@ -77,12 +80,14 @@ def main():
         elif active_effect == "rain":
             if len(umbrellas) > 0:
                 rain_enabled = True
+                umbrella_last_seen_time = current_time
                 if lightning_timer <= 0:
                     lightning_effect = True
-                    lightning_timer = random.randint(30, 60)
+                    lightning_timer = random.randint(5, 10)
                 else:
-                    lightning_effect = False
-                    lightning_timer -= 1  # ✅ ลดค่าตัวจับเวลา
+                    if umbrella_last_seen_time and (current_time - umbrella_last_seen_time > rain_delay):
+                        lightning_effect = False
+                        lightning_timer -= 1  # ✅ ลดค่าตัวจับเวลา
             else:
                 rain_enabled = False
                 lightning_effect = False
