@@ -282,9 +282,6 @@ def dispersion_effect(body_box, projector_height):
 
     glitch_particles[:] = new_particles  # ✅ อัปเดตเฉพาะอนุภาคที่ยังเหลืออยู่
 
-
-
-
 def get_dispersion_status():
     global dispersion_started
     return dispersion_started
@@ -298,7 +295,6 @@ def update_dispersion(frame, body_box, body_keypoints):
         effect_reset_time = glitch_start_time + cooldown_time  
 
     if glitch_active:
-
         glitch_active = False
         dispersion_started = True  
 
