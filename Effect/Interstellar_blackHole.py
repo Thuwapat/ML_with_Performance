@@ -6,13 +6,14 @@ import time
 black_hole_x = None
 black_hole_y = None
 black_hole_radius = 50
+max_radius = 1200
+growth_speed = 2
 particles = []
 
 last_hands_up_time = None  # ✅ ใช้เก็บเวลาล่าสุดที่ยกมือขึ้น
-delay_before_clear = 10  # ✅ ดีเลย์ 10 วินาทีก่อนลบอนุภาค
-
-last_hands_up_time = None  # ✅ ใช้เก็บเวลาล่าสุดที่ยกมือขึ้น
-delay_before_clear = 10  # ✅ ดีเลย์ 10 วินาทีก่อนลบอนุภาค
+delay_before_expand = 5  # ✅ เวลาหน่วงก่อนเริ่มขยาย 
+expansion_start_time = None 
+black_hole_growth_triggered = False
 
 # ✅ กำหนดจำนวนอนุภาคสูงสุด
 MAX_PARTICLES = 300
@@ -53,6 +54,9 @@ def update_particles():
 
     new_particles = []
     for p in particles:
+        # ✅ อัปเดตระยะโคจรของอนุภาคให้สัมพันธ์กับขนาดของหลุมดำ
+        p["orbit_radius"] = max(black_hole_radius * 2, p["orbit_radius"])
+
         p["angle"] += p["angular_velocity"]
         p["x"] = black_hole_x + p["orbit_radius"] * np.cos(p["angle"])
         p["y"] = black_hole_y + p["orbit_radius"] * np.sin(p["angle"])
@@ -66,9 +70,12 @@ def update_particles():
     # ✅ ลบอนุภาคเก่าหากมีมากเกินไป
     particles = new_particles[-MAX_PARTICLES:]
 
+
 # วาดอนุภาคแบบมีแสงเรืองรองและหางยาว
 def draw_black_hole(frame):
-    cv2.circle(frame, (int(black_hole_x), int(black_hole_y)), black_hole_radius, (0, 0, 0), -1)
+    if black_hole_radius > 0:
+        cv2.circle(frame, (int(black_hole_x), int(black_hole_y)), int(black_hole_radius), (0, 0, 0), -1)  # ✅ ใช้ int()
+
     for p in particles:
         for i in range(1, len(p["trail"])):
             alpha = int(p["glow"] * (i / len(p["trail"])) ** 1.5)
@@ -80,7 +87,7 @@ def draw_black_hole(frame):
 
 # ฟังก์ชันหลักสร้างหลุมดำที่อนุภาคหมุนรอบตัว พร้อมเอฟเฟกต์สำหรับห้องมืด
 def create_interstellar_black_hole(frame, hands_up):
-    global black_hole_x, black_hole_y, particles, last_hands_up_time
+    global black_hole_x, black_hole_y, black_hole_radius, particles, last_hands_up_time, black_hole_growth_triggered, expansion_start_time
     from Projector_Connect import projector_width, projector_height  
 
     if black_hole_x is None or black_hole_y is None:
@@ -91,12 +98,30 @@ def create_interstellar_black_hole(frame, hands_up):
 
     if hands_up:
         spawn_new_particles(1)  # ✅ สร้างอนุภาคเฉพาะเมื่อยกมือขึ้น
-        last_hands_up_time = current_time 
+        last_hands_up_time = current_time
+        black_hole_growth_triggered = False  # ✅ รีเซ็ตค่าเมื่อยกมือขึ้น
+        expansion_start_time = None  # ✅ รีเซ็ตเวลาเริ่มขยาย
     else:
-         # ✅ ถ้าเอามือลง และเวลาผ่านไปเกิน 10 วินาที → ล้างอนุภาค
-        if last_hands_up_time and (current_time - last_hands_up_time > delay_before_clear):
-            particles = []  # ✅ ล้างอนุภาคหลังจากผ่านไป 10 วินาที
+        # ✅ ถ้าเอามือลง และเวลาผ่านไปเกิน 5 วินาที → เริ่มขยายหลุมดำ
+        if last_hands_up_time and (current_time - last_hands_up_time > delay_before_expand):
+            if not black_hole_growth_triggered:
+                expansion_start_time = current_time  # ✅ บันทึกเวลาเริ่มขยาย
+            black_hole_growth_triggered = True  
 
+    # ✅ ถ้าอยู่ในโหมดขยาย → ค่อยๆ เพิ่มขนาดหลุมดำแบบ Smooth
+    if black_hole_growth_triggered and expansion_start_time:
+        time_elapsed = current_time - expansion_start_time
+        dynamic_growth_speed = min(10, 2 + time_elapsed * 0.5)  # ✅ ค่อยๆ เร่งความเร็วการขยาย
+        black_hole_radius += dynamic_growth_speed
+        black_hole_radius = min(black_hole_radius, max_radius)  # ✅ จำกัดขนาดไม่ให้เกินจอ
+
+    # ✅ ถ้าหลุมดำขยายจนเต็มจอ → ทำให้จอเป็นสีดำ และลบอนุภาคทั้งหมด
+    if black_hole_radius >= max_radius:
+        frame[:] = 0  # ✅ กลืนทั้งจอเป็นสีดำ
+        particles.clear()  # ✅ ลบอนุภาคทั้งหมด
+        black_hole_growth_triggered = False
+        black_hole_radius = 50  # ✅ รีเซ็ตขนาดหลุมดำ
+        expansion_start_time = None  # ✅ รีเซ็ตเวลาเริ่มขยาย
     update_particles()
     draw_black_hole(frame)
     return frame
