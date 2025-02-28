@@ -125,7 +125,6 @@ def main():
                 pending_effect_change = "rain"
                 last_key_time = current_time
             elif key == ord("4"): 
-                video_enabled = not video_enabled
                 pending_effect_change = "disperson"
                 last_key_time = current_time
             elif key == ord("5"):
