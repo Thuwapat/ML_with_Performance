@@ -45,7 +45,9 @@ def main():
         body_keypoints = [left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist]
 
         hands_up = is_hands_up(left_shoulder, right_shoulder, left_wrist, right_wrist)
+
         body_box = detect_body(frame)
+        
         umbrellas = detect_umbrella(frame)
 
         # Smooth frame rate control
