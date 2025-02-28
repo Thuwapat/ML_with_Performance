@@ -3,13 +3,12 @@ import time
 from Detection.Get_Var import *
 from Effect.Particeles import *
 from Effect.Interstellar_blackHole import create_interstellar_black_hole
-from Utileize import calculate_shoulder_speed
 from Projector_Connect import *
 
 
 def main():
     # Initialize webcam
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set camera width
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set camera height
 
@@ -41,9 +40,6 @@ def main():
         left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, all_keypoints = get_post_keypoint(frame)
 
         body_keypoints = [left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist]
-
-        hand_boxes, hand_keypoints, left_hand, right_hand = get_hand_keypoint(frame)
-        left_hand, right_hand, handful, hand_center, hand_open, hands_together = detect_hand(frame)
         hands_up = is_hands_up(left_shoulder, right_shoulder, left_wrist, right_wrist)
         body_box = detect_body(frame)
         umbrellas = detect_umbrella(frame)
@@ -57,18 +53,7 @@ def main():
         if all_keypoints is not None:
             for x, y in all_keypoints:
                 cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)  # Green dots for keypoints
-         # Draw hand marker (for visualization)
-        if hand_center is not None:
-            color = (0, 255, 0) if hand_open else (0, 0, 255)  # Green for open, Red for fist
-            cv2.circle(frame, hand_center, 20, color, 2)
-        # Draw Hand box on frame
-        for box in hand_boxes:
-            x1, y1, x2, y2 = map(int, box[:4])
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        #Draw **hand keypoints** (Red dots)
-        for keypoint in hand_keypoints:
-            for x, y in keypoint:
-                cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+
         # Draw Umbella
         for x1, y1, x2, y2 in umbrellas:
            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)  # กล่องสีน้ำเงิน
