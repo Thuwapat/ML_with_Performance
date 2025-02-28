@@ -114,22 +114,23 @@ def main():
             if key == ord("q"):
                 break
             elif key == ord("1"):
-                pending_effect_change = "disperson" ##4
+                pending_effect_change = "black_hole"
                 last_key_time = current_time
             elif key == ord("2"):
-                pending_effect_change = "gravity_swirl" ##2
+                pending_effect_change = "gravity_swirl" 
                 last_key_time = current_time
             elif key == ord("3"):
-                pending_effect_change = "gravity/body"  ##5
+                pending_effect_change = "rain"
                 last_key_time = current_time
             elif key == ord("4"): 
                 video_enabled = not video_enabled
+                pending_effect_change = "disperson"
                 last_key_time = current_time
             elif key == ord("5"):
-                pending_effect_change = "rain" ##3
+                pending_effect_change = "gravity/body"
                 last_key_time = current_time
             elif key == ord("6"):
-                pending_effect_change = "black_hole" ##1
+                video_enabled = not video_enabled
                 last_key_time = current_time
             elif key == ord("0"):
                 pending_effect_change = "none"
