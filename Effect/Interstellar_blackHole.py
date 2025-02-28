@@ -1,11 +1,18 @@
 import cv2
 import numpy as np
 import random
+import time
 
 black_hole_x = None
 black_hole_y = None
 black_hole_radius = 50
 particles = []
+
+last_hands_up_time = None  # ✅ ใช้เก็บเวลาล่าสุดที่ยกมือขึ้น
+delay_before_clear = 10  # ✅ ดีเลย์ 10 วินาทีก่อนลบอนุภาค
+
+last_hands_up_time = None  # ✅ ใช้เก็บเวลาล่าสุดที่ยกมือขึ้น
+delay_before_clear = 10  # ✅ ดีเลย์ 10 วินาทีก่อนลบอนุภาค
 
 # ✅ กำหนดจำนวนอนุภาคสูงสุด
 MAX_PARTICLES = 300
@@ -73,18 +80,23 @@ def draw_black_hole(frame):
 
 # ฟังก์ชันหลักสร้างหลุมดำที่อนุภาคหมุนรอบตัว พร้อมเอฟเฟกต์สำหรับห้องมืด
 def create_interstellar_black_hole(frame, hands_up):
-    global black_hole_x, black_hole_y
-    from Projector_Connect import projector_width, projector_height  # ✅ นำเข้าขนาดจอ Projector
+    global black_hole_x, black_hole_y, particles, last_hands_up_time
+    from Projector_Connect import projector_width, projector_height  
 
     if black_hole_x is None or black_hole_y is None:
         black_hole_x = projector_width // 2  # ✅ ตั้งค่าให้อยู่กลางจอ
         black_hole_y = projector_height // 2  
 
-    update_particles()
-    
+    current_time = time.time()
+
     if hands_up:
-        spawn_new_particles(30)
-    
+        spawn_new_particles(1)  # ✅ สร้างอนุภาคเฉพาะเมื่อยกมือขึ้น
+        last_hands_up_time = current_time 
+    else:
+         # ✅ ถ้าเอามือลง และเวลาผ่านไปเกิน 10 วินาที → ล้างอนุภาค
+        if last_hands_up_time and (current_time - last_hands_up_time > delay_before_clear):
+            particles = []  # ✅ ล้างอนุภาคหลังจากผ่านไป 10 วินาที
+
+    update_particles()
     draw_black_hole(frame)
     return frame
-

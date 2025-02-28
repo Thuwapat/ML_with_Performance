@@ -78,7 +78,7 @@ def main():
         elif active_effect == "disperson":
             frame = update_dispersion(frame, body_box, body_keypoints)
         elif active_effect == "black_hole":
-            frame = create_interstellar_black_hole(frame, hands_up)
+            pass
         elif active_effect == "rain":
             if len(umbrellas) > 0:
                 rain_enabled = True
@@ -101,7 +101,7 @@ def main():
             cv2.imshow("Projector", projector_frame)
 
 
-        video_enabled = update_projector(frame, rain_enabled, video_enabled, active_effect, lightning_effect)
+        video_enabled = update_projector(hands_up, rain_enabled, video_enabled, active_effect, lightning_effect)
 
 
         # Show frame

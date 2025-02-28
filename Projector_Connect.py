@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
 import random 
-from PIL import Image, ImageSequence
-
 # Screen size
 projector_width = 1920  
 projector_height = 1080  
@@ -14,39 +12,6 @@ cv2.setWindowProperty("Projector", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREE
 
 video_path = "./video/myvideo.mp4"  
 video_cap = cv2.VideoCapture(video_path)
-
-gif_path = "./Effect/myblackhole.gif"
-gif_frames = []
-
-def load_gif():
-    global gif_frames
-    gif_frames = []
-    gif = Image.open(gif_path)
-    for frame in ImageSequence.Iterator(gif):
-        frame = frame.convert("RGB")
-        frame = np.array(frame)
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        gif_frames.append(frame)
-
-def play_gif_on_projector():
-    global gif_frames
-    if not gif_frames:
-        load_gif()
-
-    for frame in gif_frames:
-        frame = cv2.resize(frame, (projector_width // 2, projector_height // 2))  # ✅ ปรับขนาด GIF
-        x_offset = (projector_width - frame.shape[1]) // 2
-        y_offset = (projector_height - frame.shape[0]) // 2
-
-        projector_frame = np.full((projector_height, projector_width, 3), 0, dtype=np.uint8)
-        projector_frame[y_offset:y_offset+frame.shape[0], x_offset:x_offset+frame.shape[1]] = frame
-
-        cv2.imshow("Projector", projector_frame)
-
-        key = cv2.waitKey(100) & 0xFF  # ✅ ควบคุมความเร็วของ GIF
-        if key == ord("q") or key == ord("0"):  # ✅ หยุดเล่น GIF
-            return False
-    return True
 
 def toggle_fullscreen():
     global is_fullscreen
@@ -79,7 +44,7 @@ def play_video_on_projector():
             toggle_fullscreen()
     return True  
 
-def update_projector(frame, rain_enabled, video_enabled, active_effect, lightning_effect=False):
+def update_projector(hands_up , rain_enabled, video_enabled, active_effect, lightning_effect=False):
     if video_enabled:
         video_enabled = play_video_on_projector()
         return video_enabled
@@ -100,7 +65,7 @@ def update_projector(frame, rain_enabled, video_enabled, active_effect, lightnin
 
     if active_effect == "black_hole":
         from Effect.Interstellar_blackHole import create_interstellar_black_hole
-        projector_frame = create_interstellar_black_hole(projector_frame, hands_up=True)
+        projector_frame = create_interstellar_black_hole(projector_frame, hands_up)
     
     draw_dispersion(projector_frame)  # วาดเอฟเฟกต์กระจายพลังงาน
     draw_gravity_swirl_particles(projector_frame)  # วาดอนุภาคหมุนรอบตัว
