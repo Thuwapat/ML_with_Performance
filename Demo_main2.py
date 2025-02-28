@@ -6,6 +6,7 @@ from Effect.Interstellar_blackHole import create_interstellar_black_hole
 from Projector_Connect import *
 
 
+
 def main():
     # Initialize webcam
     cap = cv2.VideoCapture(0)
@@ -25,7 +26,7 @@ def main():
 
     umbrella_last_seen_time = None  # ✅ เก็บเวลาที่พบร่มล่าสุด
     rain_delay = 3  # ✅ ดีเลย์ 3 วินาทีก่อนปิดฝน
-
+    
     # ตัวแปรสำหรับป้องกันการกดซ้ำ
     last_key_time = 0
     key_cooldown = 0.2  # 200 มิลลิวินาที
@@ -43,6 +44,7 @@ def main():
         left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, all_keypoints = get_post_keypoint(frame)
 
         body_keypoints = [left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist]
+
         hands_up = is_hands_up(left_shoulder, right_shoulder, left_wrist, right_wrist)
         body_box = detect_body(frame)
         umbrellas = detect_umbrella(frame)
@@ -85,17 +87,15 @@ def main():
                     lightning_effect = True
                     lightning_timer = random.randint(5, 10)
                 else:
-                    if umbrella_last_seen_time and (current_time - umbrella_last_seen_time > rain_delay):
-                        lightning_effect = False
-                        lightning_timer -= 1  # ✅ ลดค่าตัวจับเวลา
+                    lightning_effect = False
+                    lightning_timer -= 1  # ✅ ลดค่าตัวจับเวลา
             else:
-                rain_enabled = False
-                lightning_effect = False
+                if umbrella_last_seen_time and (current_time - umbrella_last_seen_time > rain_delay):
+                    rain_enabled = False
+                    lightning_effect = False
+            
             # สร้าง Frame สำหรับโปรเจคเตอร์
             projector_frame = np.zeros((projector_height, projector_width, 3), dtype=np.uint8)
-
-            # วาดหลุมดำไปที่โปรเจคเตอร์
-            projector_frame = create_interstellar_black_hole(projector_frame, hands_up)
 
             # ส่งไปแสดงผลที่หน้าต่างโปรเจคเตอร์
             cv2.imshow("Projector", projector_frame)
@@ -132,11 +132,6 @@ def main():
             elif key == ord("6"):
                 pending_effect_change = "black_hole"
                 last_key_time = current_time
-            elif key == ord("7"):  
-                video_enabled = True
-                while video_enabled:
-                    video_enabled = play_gif_on_projector()
-                    last_key_time = current_time  
             elif key == ord("0"):
                 pending_effect_change = "none"
                 last_key_time = current_time

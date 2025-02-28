@@ -1,19 +1,17 @@
 import cv2
 import numpy as np
 import random
-from Detection.Get_Var import detect_body
 
 black_hole_x = None
 black_hole_y = None
 black_hole_radius = 50
 particles = []
-absorbed_particles = []
 
 # ✅ กำหนดจำนวนอนุภาคสูงสุด
-MAX_PARTICLES = 450
+MAX_PARTICLES = 300
 
 # สร้างอนุภาคใหม่ให้กระจายเป็นชั้นๆ แบบวงโคจรและมีแสงเรืองรอง
-def spawn_new_particles(num_particles=50):  # ✅ ลดจำนวนที่เกิดใหม่ต่อรอบ
+def spawn_new_particles(num_particles):  # ✅ ลดจำนวนที่เกิดใหม่ต่อรอบ
     global particles
     h, w = 1080, 1920
 
