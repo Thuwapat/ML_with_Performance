@@ -6,7 +6,7 @@ import time
 black_hole_x = None
 black_hole_y = None
 black_hole_radius = 50
-max_radius = 1200
+max_radius = 600
 growth_speed = 2
 particles = []
 
