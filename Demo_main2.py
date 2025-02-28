@@ -2,7 +2,6 @@ import cv2
 import time
 from Detection.Get_Var import *
 from Effect.Particeles import *
-from Effect.Interstellar_blackHole import create_interstellar_black_hole
 from Projector_Connect import *
 
 
@@ -136,7 +135,7 @@ def main():
                 pending_effect_change = "none"
                 last_key_time = current_time
             
-        # ประมวลผลการเปลี่ยนเอฟเฟกต์
+        # ประมวลผลการเปลี่ยนเอฟเฟกต์qqqq
         if pending_effect_change is not None:
             clear_all_particles()
             active_effect = pending_effect_change

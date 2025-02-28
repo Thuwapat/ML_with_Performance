@@ -140,4 +140,4 @@ def detect_umbrella(frame):
 def is_hands_up(left_shoulder, right_shoulder, left_wrist, right_wrist):
     if not left_shoulder or not right_shoulder or not left_wrist or not right_wrist:
         return False
-    return left_wrist[1] < left_shoulder[1] and right_wrist[1] < right_shoulder[1]
+    return left_wrist[1] < left_shoulder[1] or right_wrist[1] < right_shoulder[1]
