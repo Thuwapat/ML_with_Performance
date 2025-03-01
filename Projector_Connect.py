@@ -110,7 +110,7 @@ def update_projector(hands_up, rain_enabled, video_enabled, active_effect, light
         if current_time - projector_text_start_time < projector_text_duration:
             # ใช้ฟังก์ชัน put_centered_text ที่รองรับ Unicode ด้วย PIL
             # ระบุ path ของฟอนต์ที่รองรับภาษาไทย เช่น "THSarabun.ttf" หรือแก้ path ให้ถูกต้อง
-            projector_frame = put_centered_text(projector_frame, projector_text_to_display, "THSarabun.ttf", 64, (0, 255, 255))
+            projector_frame = put_centered_text(projector_frame, projector_text_to_display, "THSarabun.ttf", 64, (255, 255, 255))
         else:
             projector_text_to_display = None
 
