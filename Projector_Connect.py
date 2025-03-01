@@ -30,7 +30,7 @@ def toggle_fullscreen():
         cv2.setWindowProperty("Projector", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
 
 def play_video_on_projector():
-    global video_enabled, is_fullscreen
+    global is_fullscreen
 
     if not video_cap.isOpened():
         print("Can't play video")
