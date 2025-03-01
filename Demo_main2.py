@@ -30,7 +30,7 @@ def main():
     last_key_time = 0
     key_cooldown = 0.2  # 200 มิลลิวินาที
     
-    # ตัวแปรเก็บสถานะการเปลี่ยนเอฟเฟกต์ (ยังไม่เปลี่ยนจนกว่าข้อความจะแสดงครบ)
+    # ตัวแปรเก็บสถานะการเปลี่ยนเอฟเฟกต์ (รอให้ข้อความแสดงครบก่อน)
     pending_effect_change = None
 
     while cap.isOpened():
@@ -109,45 +109,50 @@ def main():
             if key == ord("q"):
                 break
             elif key == ord("1"):
-                pending_effect_change = "black_hole"
+                clear_all_particles()
+                active_effect = "black_hole"
                 last_key_time = current_time
             elif key == ord("2"):
-                # เมื่อกดเลข 2 ตั้งค่าข้อความใน Projector แล้วรอให้ครบช่วงเวลา ก่อนเปลี่ยนเอฟเฟกต์
+                # เมื่อกดเลข 2: เคลียร์เอฟเฟกต์เก่า, ตั้ง active_effect เป็น "none" แล้วเก็บเอฟเฟกต์ใหม่ไว้ใน pending_effect_change
+                clear_all_particles()
+                active_effect = "none"
+                pending_effect_change = "gravity_swirl"
                 Projector_Connect.projector_text_to_display = "เรามักจะรู้สึกเหมือนโดนดูดอยู่ในหลุมดำตลอดเวลา"
                 Projector_Connect.projector_text_start_time = current_time
-                pending_effect_change = "gravity_swirl"
                 last_key_time = current_time
             elif key == ord("3"):
-                pending_effect_change = "rain"
+                clear_all_particles()
+                active_effect = "rain"
                 last_key_time = current_time
             elif key == ord("4"):
+                clear_all_particles()
+                active_effect = "none"
+                pending_effect_change = "firework"
                 Projector_Connect.projector_text_to_display = "เฝ้าทะนุถนอมความรู้สึกที่มีต่ออีกฝ่าย"
                 Projector_Connect.projector_text_start_time = current_time
-                pending_effect_change = "firework"
                 last_key_time = current_time
             elif key == ord("5"):
-                pending_effect_change = "disperson"
+                clear_all_particles()
+                active_effect = "disperson"
                 last_key_time = current_time
             elif key == ord("6"):
+                clear_all_particles()
+                active_effect = "none"
+                pending_effect_change = "gravity/body"
                 Projector_Connect.projector_text_to_display = "แต่เราเป็นฝ่ายแตกสลายนับไม่ถ้วน"
                 Projector_Connect.projector_text_start_time = current_time
-                pending_effect_change = "gravity/body"
                 last_key_time = current_time
             elif key == ord("7"):
                 video_enabled = not video_enabled
                 last_key_time = current_time
             elif key == ord("0"):
-                pending_effect_change = "none"
+                clear_all_particles()
+                active_effect = "none"
                 last_key_time = current_time
             
-        # หากมี pending_effect_change อยู่ ให้รอจนข้อความแสดงครบก่อนเปลี่ยน effect
+        # ถ้ามี pending_effect_change อยู่ ให้รอจนข้อความแสดงครบก่อนเปลี่ยน effect
         if pending_effect_change is not None:
-            if Projector_Connect.projector_text_to_display is not None:
-                if current_time - Projector_Connect.projector_text_start_time >= Projector_Connect.projector_text_duration:
-                    clear_all_particles()
-                    active_effect = pending_effect_change
-                    pending_effect_change = None
-            else:
+            if current_time - Projector_Connect.projector_text_start_time >= Projector_Connect.projector_text_duration:
                 clear_all_particles()
                 active_effect = pending_effect_change
                 pending_effect_change = None
