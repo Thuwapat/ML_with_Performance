@@ -3,99 +3,134 @@ import numpy as np
 import random
 import cv2
 
-fireworks_particles = []  # ✅ เก็บอนุภาคพลุ
-explosion_particles = []  # ✅ เก็บอนุภาคที่ลอยอยู่ด้านบน
-firework_triggered = False  # ✅ ตรวจสอบว่าพลุถูกยิงแล้วหรือยัง
-firework_start_time = None  # ✅ เวลาที่เริ่มต้น
-has_launched = False  # ✅ ตรวจสอบว่าพลุถูกยิงแล้วหรือยัง
+# อนุภาคเปลือกพลุ (shell) และอนุภาคประกาย (sparks)
+shell_particles = []
+spark_particles = []
+
+firework_started = False   # ตรวจสอบว่าพลุถูกยิงแล้วหรือยัง
+firework_exploded = False  # ตรวจสอบว่าพลุระเบิดแล้วหรือยัง
 
 def firework_effect(projector_width, projector_height):
-    global fireworks_particles, explosion_particles, firework_triggered
-    global firework_start_time, has_launched, waiting_for_explosion
+    """
+    สร้างเอฟเฟกต์พลุที่พุ่งขึ้นด้านบน และระเบิดเป็นวงกลมรอบด้าน (ขาวดำ)
+    """
+    global shell_particles, spark_particles
+    global firework_started, firework_exploded
 
-    launch_x = projector_width // 2  # ✅ กึ่งกลางจอ
-    launch_y = projector_height - 50  # ✅ ฐานล่างของจอ
-    target_y = int(projector_height * 0.2)  # ✅ จุดที่พลุจะระเบิด (80% ของจอ)
+    # จุดปล่อยพลุจากด้านล่าง
+    launch_x = projector_width // 2
+    launch_y = projector_height - 50
+    # จุดที่อยากให้พลุระเบิด (สูงประมาณ 20% ของจอ)
+    target_y = int(projector_height * 0.2)
 
-    current_time = time.time()
-
-    # ✅ ยิงพลุขึ้นไปเพียงครั้งเดียว
-    if not has_launched:
-        has_launched = True  # ✅ บันทึกว่าได้ยิงแล้ว
-        fireworks_particles.append({
+    # ถ้ายังไม่ได้เริ่ม ให้ยิงพลุ 1 ลูก (shell) 
+    if not firework_started:
+        firework_started = True
+        shell_particles.append({
             "x": launch_x,
             "y": launch_y,
             "vx": random.uniform(-1, 1),
-            "vy": -random.uniform(8, 12),  # ✅ พุ่งขึ้นไปด้านบน
+            "vy": -random.uniform(10, 13),
             "opacity": 255,
-            "size": random.randint(2, 5),
-            "glow_intensity": 255,
-            "trail": []  # ✅ เพิ่มเส้นหางของอนุภาค
+            "size": 5,
+            "trail": []  # เก็บตำแหน่งย้อนหลัง (trail) ของ shell
         })
 
-    # ✅ อัปเดตตำแหน่งของพลุ และเพิ่มเส้นหาง (Trail)
-    new_fireworks = []
-    for particle in fireworks_particles:
-        particle["x"] += particle["vx"]
-        particle["y"] += particle["vy"]
-        particle["opacity"] = max(0, particle["opacity"] - 3)
+    # อัปเดตตำแหน่งของ shell
+    new_shell = []
+    for shell in shell_particles:
+        # บันทึกตำแหน่งก่อนอัปเดต เพื่อสร้าง trail
+        shell["trail"].append((shell["x"], shell["y"]))
+        # จำกัดความยาว trail
+        if len(shell["trail"]) > 30:
+            shell["trail"].pop(0)
 
-        # ✅ เพิ่มพิกัดปัจจุบันลงในเส้นหาง
-        particle["trail"].append((particle["x"], particle["y"]))
-        if len(particle["trail"]) > 50:  # ✅ จำกัดความยาวหาง
-            particle["trail"].pop(0)
+        # อัปเดตตำแหน่ง
+        shell["x"] += shell["vx"]
+        shell["y"] += shell["vy"]
+        # ค่อยๆ ลดความเข้ม
+        shell["opacity"] = max(0, shell["opacity"] - 2)
 
-        # ✅ ถ้าพลุถึงระดับระเบิด → หายไปจากระบบ
-        if particle["y"] > target_y:
-            new_fireworks.append(particle)
+        # ถ้าพลุถึงจุดระเบิดหรือความเข้มเหลือน้อย ให้ระเบิด
+        if shell["y"] <= target_y or shell["opacity"] <= 50:
+            if not firework_exploded:
+                firework_exploded = True
+                # สร้างประกายไฟกระจายรอบจุดระเบิด
+                spawn_radial_sparks(shell["x"], shell["y"], 200)
+            # shell นี้ไม่ต้องเก็บต่อ
+        else:
+            new_shell.append(shell)
+    shell_particles[:] = new_shell
 
-    fireworks_particles = new_fireworks
+    # อัปเดต spark
+    new_sparks = []
+    for spark in spark_particles:
+        # บันทึกตำแหน่งก่อนอัปเดต
+        spark["trail"].append((spark["x"], spark["y"]))
+        # จำกัดความยาว trail
+        if len(spark["trail"]) > 20:
+            spark["trail"].pop(0)
 
-    # ✅ ตรวจสอบว่าพลุถึง `target_y` หรือยัง
-    if not firework_triggered and len(fireworks_particles) == 0:
-        firework_triggered = True
-        firework_start_time = current_time  # ✅ ตั้งค่าเวลาเริ่มต้นระเบิด
-        waiting_for_explosion = True  # ✅ เริ่มนับถอยหลัง 3 วินาที
+        # อัปเดตตำแหน่ง
+        spark["x"] += spark["vx"]
+        spark["y"] += spark["vy"]
+        # ถ้าต้องการแรงโน้มถ่วงเล็กน้อยให้เพิ่ม spark["vy"] += 0.05 ที่นี่
+        spark["opacity"] = max(0, spark["opacity"] - 2)
 
-    # ✅ หลังจากรอ 3 วินาที → อนุภาคจะถูกสร้างขึ้นเรื่อยๆ อย่างต่อเนื่อง
-    if firework_triggered and (current_time - firework_start_time >= 3):
-        for _ in range(2):  # ✅ ค่อยๆ สร้างอนุภาคใหม่ขึ้นเรื่อยๆ
-            angle = random.uniform(0, 2 * np.pi)  # ✅ ทิศทางการกระจายแบบสุ่ม
-            speed = random.uniform(0.5, 1.5)  # ✅ ความเร็วแบบสุ่ม
-            explosion_particles.append({
-                "x": launch_x + random.uniform(-150, 150),
-                "y": target_y + random.uniform(-50, 50),
-                "vx": np.cos(angle) * speed,
-                "vy": np.sin(angle) * speed * 0.3,  # ✅ เคลื่อนที่ช้าๆ
-                "opacity": 255,
-                "size": random.randint(1, 3),
-                "glow_intensity": 255
-            })
+        if spark["opacity"] > 0:
+            new_sparks.append(spark)
+    spark_particles[:] = new_sparks
 
-    # ✅ อัปเดตตำแหน่งของอนุภาคที่ลอยอยู่ด้านบน
-    new_explosion = []
-    for particle in explosion_particles:
-        particle["x"] += particle["vx"]
-        particle["y"] += particle["vy"]
-        particle["opacity"] = max(0, particle["opacity"] - 1)  # ✅ ค่อยๆ จางหายไป
-
-        if particle["opacity"] > 0:
-            new_explosion.append(particle)
-
-    explosion_particles = new_explosion
-
-
+def spawn_radial_sparks(center_x, center_y, num_sparks=200):
+    """
+    สร้างอนุภาค sparks กระจายเป็นวงกลมรอบจุด (center_x, center_y)
+    """
+    global spark_particles
+    for _ in range(num_sparks):
+        angle = random.uniform(0, 2 * np.pi)
+        speed = random.uniform(3, 7)  # ความเร็วเริ่มต้นของแต่ละ spark
+        spark_particles.append({
+            "x": center_x,
+            "y": center_y,
+            "vx": np.cos(angle) * speed,
+            "vy": np.sin(angle) * speed,
+            "opacity": 255,
+            "size": random.randint(2, 4),
+            "trail": []  # เก็บตำแหน่งย้อนหลัง (trail) ของ spark
+        })
 
 def draw_firework(frame):
-    """ วาดเอฟเฟกต์พลุลงบนจอ Projector """
-    for particle in fireworks_particles:
-        for i in range(1, len(particle["trail"])):
-            alpha = int(255 * (i / len(particle["trail"])) ** 1.5)
-            color = (alpha, alpha, alpha)
-            pt1 = (int(particle["trail"][i - 1][0]), int(particle["trail"][i - 1][1]))
-            pt2 = (int(particle["trail"][i][0]), int(particle["trail"][i][1]))
-            cv2.line(frame, pt1, pt2, color, thickness=2, lineType=cv2.LINE_AA)
+    """
+    วาดพลุ (shell) และ sparks ลงบนเฟรม (ขาวดำ)
+    พร้อมวาด 'เส้น' หรือ 'trail' ของแต่ละอนุภาค
+    """
+    # สร้าง overlay สำหรับวาดทั้งหมด เพื่อลดการ addWeighted หลายครั้ง
+    overlay = frame.copy()
 
-    for particle in explosion_particles:
-        cv2.circle(frame, (int(particle["x"]), int(particle["y"])), particle["size"], (255, 255, 255), -1)
+    # วาด shell + trail
+    for shell in shell_particles:
+        # วาด trail ของ shell เป็นเส้นสีขาว
+        for i in range(1, len(shell["trail"])):
+            p1 = shell["trail"][i-1]
+            p2 = shell["trail"][i]
+            cv2.line(overlay, (int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1])), (255, 255, 255), 2)
 
+        # วาดจุด shell (เป็นวงกลม)
+        alpha_shell = shell["opacity"] / 255.0
+        cv2.circle(overlay, (int(shell["x"]), int(shell["y"])), shell["size"], (255,255,255), -1)
+
+    # วาด sparks + trail
+    for spark in spark_particles:
+        # วาด trail ของ spark
+        for i in range(1, len(spark["trail"])):
+            p1 = spark["trail"][i-1]
+            p2 = spark["trail"][i]
+            # ทำเส้นสีขาวบาง ๆ
+            cv2.line(overlay, (int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1])), (255, 255, 255), 1)
+
+        # วาดตัว spark
+        alpha_spark = spark["opacity"] / 255.0
+        cv2.circle(overlay, (int(spark["x"]), int(spark["y"])), spark["size"], (255,255,255), -1)
+
+    # ผสม overlay กับ frame ทีเดียว
+    cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
