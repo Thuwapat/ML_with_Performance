@@ -39,7 +39,10 @@ def play_video_on_projector():
     while video_cap.isOpened():
         ret, frame = video_cap.read()
         if not ret:
-            video_cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  
+            video_cap.set(cv2.CAP_PROP_POS_FRAMES, 0) 
+            blank_frame = np.zeros((projector_height, projector_width, 3), dtype=np.uint8)
+            cv2.imshow("Projector", blank_frame)
+            cv2.waitKey(1)
             return False
 
         frame = cv2.resize(frame, (projector_width, projector_height))
