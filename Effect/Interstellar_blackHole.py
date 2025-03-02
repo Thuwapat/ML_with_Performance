@@ -11,7 +11,7 @@ growth_speed = 2
 particles = []
 
 last_hands_up_time = None  # ✅ ใช้เก็บเวลาล่าสุดที่ยกมือขึ้น
-delay_before_expand = 5  # ✅ เวลาหน่วงก่อนเริ่มขยาย 
+delay_before_expand = 3  # ✅ เวลาหน่วงก่อนเริ่มขยาย 
 expansion_start_time = None 
 black_hole_growth_triggered = False
 
