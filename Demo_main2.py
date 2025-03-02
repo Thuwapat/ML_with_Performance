@@ -127,7 +127,7 @@ def main():
             elif key == ord("4"):
                 clear_all_particles()
                 active_effect = "none"
-                pending_effect_change = "firework"
+                #pending_effect_change = "firework"
                 Projector_Connect.projector_text_to_display = "เฝ้าทะนุถนอมความรู้สึกที่มีต่ออีกฝ่าย"
                 Projector_Connect.projector_text_start_time = current_time
                 last_key_time = current_time

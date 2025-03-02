@@ -239,7 +239,7 @@ def dispersion_effect(body_box, projector_height):
 
     target_y = projector_height * 0.2  # ✅ เป้าหมาย = 80% ของจอ (ยิ่งค่า y ต่ำ ยิ่งสูง)
 
-    gravity_strength = 5  # ✅ ค่าความแรงที่ดึงอนุภาคเข้าสู่ Body_center
+    gravity_strength = 1  # ✅ ค่าความแรงที่ดึงอนุภาคเข้าสู่ Body_center
     moving_speed = 2  # ✅ ความเร็วที่ Center ลอยขึ้น
     explosion_triggered = False  # ✅ ตรวจสอบว่าอนุภาคระเบิดแล้วหรือยัง
 
@@ -256,7 +256,7 @@ def dispersion_effect(body_box, projector_height):
             particle["vy"] += (dy / distance) * gravity_strength
 
         # ✅ ค่อยๆ ลดค่า opacity ให้อนุภาคจางหายไป
-        particle["opacity"] = max(0, particle["opacity"] - 3)
+        particle["opacity"] = max(0, particle["opacity"] - 0.5)
 
         # ✅ อัปเดตตำแหน่งอนุภาค
         particle["x"] += particle["vx"]
@@ -269,9 +269,10 @@ def dispersion_effect(body_box, projector_height):
     # ✅ ค่อยๆ ขยับจุดศูนย์กลางขึ้นไป
     moving_center_y -= moving_speed
 
+    explosion_triggered = True
     # ✅ เมื่อจุดศูนย์กลางลอยถึง 80% ของจอ → ระเบิดอนุภาคออก
-    if moving_center_y <= target_y:
-        explosion_triggered = True
+    #if moving_center_y <= target_y:
+    #    explosion_triggered = True
 
     if explosion_triggered:
         for particle in new_particles:
